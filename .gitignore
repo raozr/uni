@@ -1,0 +1,64 @@
+# ===== Dependencies =====
+node_modules/
+*/node_modules/
+
+# ===== Environment & Secrets =====
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.local
+
+# ===== Server Runtime =====
+*.log
+server/*.log
+server/.server.pid
+*.pid
+
+# ===== Build Output =====
+dist/
+*/dist/
+build/
+*/build/
+*.tsbuildinfo
+
+# ===== Expo / Mobile =====
+.expo/
+*/.expo/
+web-build/
+expo-env.d.ts
+/ios
+/android
+mobile/ios/
+mobile/android/
+
+# ===== Native / Keys =====
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+.kotlin/
+
+# ===== Metro / Debug =====
+.metro-health-check*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# ===== OS =====
+.DS_Store
+*/.DS_Store
+Thumbs.db
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== Trae =====
+# Keep .trae/rules and .trae/specs but ignore documents cache
+.trae/documents/

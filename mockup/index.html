@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uni - 界面模拟（通用版）</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #1a1a2e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+.phone-frame {
+  width: 375px; height: 812px; background: #F0F4F8; border-radius: 40px;
+  overflow: hidden; position: relative;
+  box-shadow: 0 0 0 8px #222, 0 0 0 10px #444, 0 20px 60px rgba(0,0,0,0.5);
+}
+.notch {
+  width: 150px; height: 28px; background: #222; border-radius: 0 0 18px 18px;
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 100;
+}
+.status-bar {
+  height: 44px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; font-size: 12px; font-weight: 600; color: #333; position: relative; z-index: 50;
+}
+.nav-bar {
+  height: 44px; display: flex; align-items: center; justify-content: center;
+  padding: 0 16px; position: relative; z-index: 50; background: #4A90D9;
+}
+.nav-bar .back-btn {
+  position: absolute; left: 12px; font-size: 16px; color: #fff;
+  cursor: pointer; padding: 4px 8px;
+}
+.nav-bar .nav-right {
+  position: absolute; right: 16px; font-size: 15px; color: #fff;
+  cursor: pointer; font-weight: 600;
+}
+.nav-bar .nav-title { font-size: 17px; font-weight: 600; color: #fff; }
+.screen {
+  display: none; height: calc(100% - 44px - 44px); overflow-y: auto; position: relative;
+}
+.screen.active { display: flex; flex-direction: column; }
+.screen.no-nav { height: calc(100% - 44px); }
+.page-tabs {
+  position: absolute; right: -190px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 200;
+}
+.page-tab {
+  padding: 8px 14px; background: rgba(255,255,255,0.1); color: #aaa;
+  border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.2s;
+  white-space: nowrap; border: 1px solid transparent;
+}
+.page-tab:hover { background: rgba(255,255,255,0.2); color: #fff; }
+.page-tab.active { background: #4A90D9; color: #fff; border-color: #6aafff; }
+
+/* Home Screen */
+#screen-home {
+  background: #F0F4F8; justify-content: center; padding: 30px; align-items: center;
+}
+#screen-home .header { text-align: center; margin-bottom: 50px; }
+#screen-home .app-name { font-size: 52px; font-weight: bold; color: #4A90D9; margin-bottom: 10px; }
+#screen-home .subtitle { font-size: 18px; color: #666; }
+.home-cards { width: 100%; display: flex; flex-direction: column; gap: 20px; }
+.home-card {
+  border-radius: 20px; padding: 30px; cursor: pointer; text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.15s;
+}
+.home-card:active { transform: scale(0.97); }
+.home-card.blue { background: #4A90D9; }
+.home-card.orange { background: #FF8C42; }
+.home-card .card-icon { font-size: 48px; margin-bottom: 12px; }
+.home-card .card-title { font-size: 26px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+.home-card .card-desc { font-size: 16px; color: rgba(255,255,255,0.85); margin-bottom: 16px; }
+.home-card .card-status {
+  font-size: 16px; color: rgba(255,255,255,0.85); margin-bottom: 16px;
+}
+.home-card .card-btn {
+  background: rgba(255,255,255,0.25); border-radius: 12px; padding: 12px 36px;
+  display: inline-block; color: #fff; font-size: 18px; font-weight: 600;
+}
+
+/* Login */
+#screen-creator-login { background: #F0F4F8; justify-content: center; padding: 30px; }
+.login-form { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.login-form .form-title { font-size: 28px; font-weight: bold; color: #333; text-align: center; margin-bottom: 24px; }
+.form-input {
+  background: #F5F7FA; border-radius: 12px; padding: 16px; font-size: 18px;
+  margin-bottom: 14px; border: 1px solid #E0E0E0; width: 100%; outline: none; font-family: inherit;
+}
+.form-input:focus { border-color: #4A90D9; }
+.primary-btn {
+  background: #4A90D9; border-radius: 12px; padding: 16px; text-align: center;
+  cursor: pointer; margin-top: 6px; transition: opacity 0.15s;
+}
+.primary-btn:active { opacity: 0.7; }
+.primary-btn .btn-text { color: #fff; font-size: 20px; font-weight: bold; }
+.switch-link { text-align: center; margin-top: 16px; color: #4A90D9; font-size: 16px; cursor: pointer; }
+
+/* Avatar Setup */
+#screen-avatar-setup { background: #F0F4F8; padding: 24px; overflow-y: auto; }
+#screen-avatar-setup .title { font-size: 28px; font-weight: bold; color: #333; margin-bottom: 8px; }
+#screen-avatar-setup .form-subtitle { font-size: 16px; color: #666; margin-bottom: 24px; }
+.field-label { font-size: 16px; font-weight: 600; color: #444; margin-bottom: 8px; margin-top: 12px; }
+.text-area-input {
+  background: #fff; border-radius: 12px; padding: 16px; font-size: 18px;
+  border: 1px solid #E0E0E0; width: 100%; outline: none; font-family: inherit;
+  min-height: 100px; resize: none;
+}
+.advanced-toggle {
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; border-radius: 12px; padding: 16px; margin-top: 20px;
+  border: 1px solid #E0E0E0; cursor: pointer;
+}
+.advanced-toggle .toggle-text { font-size: 16px; font-weight: 600; color: #4A90D9; }
+.advanced-toggle .toggle-arrow { font-size: 14px; color: #4A90D9; }
+.advanced-panel {
+  background: #fff; border-radius: 12px; padding: 20px; margin-top: 12px;
+  border: 1px solid #E0E0E0; display: none;
+}
+.advanced-panel.show { display: block; }
+.section-title {
+  font-size: 18px; font-weight: bold; color: #333; margin-top: 4px; margin-bottom: 4px;
+  padding-bottom: 8px; border-bottom: 1px solid #E8EEF4;
+}
+.sub-label { font-size: 15px; font-weight: 500; color: #555; margin-bottom: 6px; margin-top: 12px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.chip {
+  padding: 8px 16px; border-radius: 20px; background: #F0F4F8;
+  border: 1px solid #D0D8E0; font-size: 14px; color: #555; cursor: pointer;
+}
+.chip.active { background: #4A90D9; border-color: #4A90D9; color: #fff; font-weight: 600; }
+.trait-row { margin-top: 14px; }
+.trait-label { font-size: 15px; font-weight: 500; color: #555; margin-bottom: 6px; }
+.trait-slider-area { display: flex; align-items: center; gap: 8px; }
+.trait-range-label { font-size: 12px; color: #999; width: 42px; text-align: center; }
+.trait-slider {
+  flex: 1; height: 6px; border-radius: 3px; background: #E0E0E0; position: relative;
+}
+.trait-slider .fill { height: 6px; border-radius: 3px; background: #4A90D9; }
+.trait-slider .thumb {
+  position: absolute; top: -8px; width: 22px; height: 22px; border-radius: 11px;
+  background: #4A90D9; border: 2px solid #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  margin-left: -11px;
+}
+.trait-value { font-size: 15px; font-weight: bold; color: #4A90D9; float: right; margin-top: -20px; }
+.interest-input-row { display: flex; gap: 8px; margin-top: 4px; }
+.interest-input-row .form-input { flex: 1; margin-bottom: 0; }
+.add-tag-btn {
+  background: #4A90D9; border-radius: 12px; padding: 0 20px; display: flex;
+  align-items: center; justify-content: center; cursor: pointer;
+}
+.add-tag-btn span { color: #fff; font-size: 16px; font-weight: 600; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.tag {
+  display: flex; align-items: center; background: #E8F0FE; border-radius: 16px;
+  padding: 6px 12px;
+}
+.tag span { font-size: 14px; color: #4A90D9; }
+.tag .tag-remove { margin-left: 6px; font-size: 16px; color: #999; font-weight: bold; cursor: pointer; }
+.pref-label { font-size: 15px; font-weight: 500; color: #555; margin-top: 14px; margin-bottom: 4px; }
+.segmented { display: flex; border-radius: 8px; border: 1px solid #4A90D9; overflow: hidden; margin-top: 4px; }
+.segmented .seg-btn {
+  flex: 1; padding: 10px; text-align: center; font-size: 14px; color: #4A90D9;
+  font-weight: 600; background: #fff; cursor: pointer;
+}
+.segmented .seg-btn.active { background: #4A90D9; color: #fff; }
+.switch-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px; margin-bottom: 4px;
+}
+.switch-row .switch-label { font-size: 15px; font-weight: 500; color: #555; }
+.toggle-switch {
+  width: 44px; height: 24px; border-radius: 12px; background: #4A90D9;
+  position: relative; cursor: pointer;
+}
+.toggle-switch::after {
+  content: ''; position: absolute; right: 2px; top: 2px; width: 20px; height: 20px;
+  border-radius: 10px; background: #fff;
+}
+
+/* Code Display */
+#screen-code-display { background: #F0F4F8; justify-content: center; padding: 24px; align-items: center; }
+.code-card { background: #fff; border-radius: 20px; padding: 32px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; }
+.code-card .card-title { font-size: 26px; font-weight: bold; color: #333; margin-bottom: 12px; }
+.code-card .card-subtitle { font-size: 16px; color: #666; line-height: 24px; margin-bottom: 28px; }
+.code-box {
+  background: #F0F8FF; border-radius: 16px; padding: 24px 36px; margin-bottom: 24px;
+  border: 2px dashed #4A90D9; display: inline-block;
+}
+.code-box .code { font-size: 48px; font-weight: bold; color: #4A90D9; letter-spacing: 8px; }
+.share-btn {
+  background: #E8F0FE; border-radius: 12px; padding: 14px 32px; display: inline-block;
+  cursor: pointer; font-size: 18px; color: #4A90D9; font-weight: 600;
+}
+.enter-admin-btn {
+  background: #4A90D9; border-radius: 12px; padding: 16px; text-align: center;
+  cursor: pointer; margin-top: 20px; width: 100%; font-size: 18px; font-weight: bold; color: #fff;
+}
+
+/* Pairing */
+#screen-pairing { background: #F0F4F8; align-items: center; padding-top: 40px; }
+#screen-pairing .title { font-size: 28px; font-weight: bold; color: #333; margin-bottom: 8px; }
+#screen-pairing .subtitle { font-size: 18px; color: #666; margin-bottom: 32px; }
+.pairing-code-display {
+  background: #fff; border-radius: 16px; padding: 20px 24px; margin-bottom: 32px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.pairing-code-display .code-text { font-size: 40px; font-weight: bold; color: #333; letter-spacing: 8px; }
+.keypad { display: flex; flex-wrap: wrap; justify-content: center; width: 280px; gap: 8px; }
+.key {
+  width: 80px; height: 80px; border-radius: 40px; background: #fff;
+  display: flex; justify-content: center; align-items: center;
+  font-size: 32px; font-weight: 500; color: #333; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: background 0.1s; user-select: none;
+}
+.key:active { background: #E8E8E8; }
+.key.empty { box-shadow: none; background: transparent; cursor: default; }
+.verify-btn {
+  background: #4A90D9; border-radius: 16px; padding: 16px 60px; margin-top: 28px;
+  cursor: pointer; font-size: 22px; font-weight: bold; color: #fff; transition: opacity 0.15s;
+}
+.verify-btn:active { opacity: 0.7; }
+.verify-btn.hidden { display: none; }
+
+/* Dashboard */
+#screen-dashboard { background: #F0F4F8; padding: 16px; overflow-y: auto; }
+.avatar-card {
+  background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.avatar-card .avatar-header { display: flex; align-items: center; margin-bottom: 12px; }
+.avatar-card .avatar-emoji { font-size: 28px; margin-right: 10px; }
+.avatar-card .avatar-name { font-size: 20px; font-weight: bold; color: #333; }
+.avatar-card .info-line { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.avatar-card .info-label { font-size: 16px; color: #666; }
+.avatar-card .info-value { font-size: 18px; color: #333; font-weight: 600; }
+.avatar-card .pairing-code {
+  font-size: 28px; color: #4A90D9; font-weight: bold; letter-spacing: 4px;
+}
+.avatar-card .action-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.avatar-card .action-btn {
+  background: #E8F0FE; border-radius: 8px; padding: 6px 12px; font-size: 13px;
+  color: #4A90D9; font-weight: 600; cursor: pointer;
+}
+.dash-create-btn {
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  background: #fff; border-radius: 12px; padding: 16px; margin-top: 12px;
+  cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.dash-create-btn .create-icon { color: #4A90D9; font-size: 22px; font-weight: bold; }
+.dash-create-btn .create-text { color: #4A90D9; font-size: 17px; font-weight: 600; }
+.dash-switch-btn {
+  background: #fff; border-radius: 12px; padding: 16px; text-align: center;
+  cursor: pointer; margin-top: 12px; color: #4A90D9; font-size: 17px; font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.dash-logout-btn {
+  background: #fff; border: 1px solid #FFE0E0; border-radius: 12px; padding: 16px;
+  text-align: center; cursor: pointer; color: #E74C3C; font-size: 17px; font-weight: 600;
+  margin-top: 12px;
+}
+
+/* Chat */
+#screen-chat { background: #F0F4F8; }
+.chat-area { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.chat-empty { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; }
+.chat-empty .empty-icon { font-size: 64px; margin-bottom: 16px; }
+.chat-empty .empty-text { font-size: 20px; color: #666; text-align: center; margin-bottom: 8px; }
+.chat-empty .empty-hint { font-size: 16px; color: #999; text-align: center; }
+.msg-row { display: flex; }
+.msg-row.user { justify-content: flex-end; }
+.msg-row.ai { justify-content: flex-start; }
+.bubble { max-width: 80%; border-radius: 16px; padding: 12px; }
+.bubble.user { background: #4A90D9; }
+.bubble.ai { background: #fff; border: 1px solid #E0E0E0; }
+.bubble.creator { background: #FFF3E0; border: 1px solid #FFE0B2; }
+.bubble .role-label { font-size: 12px; color: #999; margin-bottom: 4px; font-weight: 600; }
+.bubble .msg-text { font-size: 17px; line-height: 24px; }
+.bubble.user .msg-text { color: #fff; }
+.bubble.ai .msg-text, .bubble.creator .msg-text { color: #333; }
+.chat-input-area {
+  display: flex; padding: 12px; background: #fff; border-top: 1px solid #E0E0E0;
+  align-items: flex-end;
+}
+.chat-input {
+  flex: 1; background: #F5F7FA; border-radius: 20px; padding: 10px 16px;
+  font-size: 16px; border: none; outline: none; font-family: inherit; resize: none; max-height: 100px;
+  margin-right: 8px;
+}
+.send-btn {
+  background: #4A90D9; border-radius: 20px; padding: 10px 20px; cursor: pointer;
+  font-size: 16px; font-weight: 600; color: #fff; transition: opacity 0.15s; white-space: nowrap;
+}
+.send-btn:active { opacity: 0.7; }
+
+/* Memories */
+#screen-memories { background: #F0F4F8; overflow-y: auto; }
+.search-bar { padding: 12px 16px 0; }
+.search-input {
+  background: #fff; border-radius: 10px; padding: 10px 14px; font-size: 16px;
+  border: 1px solid #E0E0E0; width: 100%; outline: none; font-family: inherit;
+}
+.add-memory-btn {
+  margin: 16px; background: #4A90D9; border-radius: 12px; padding: 14px;
+  text-align: center; cursor: pointer; font-size: 17px; font-weight: 600; color: #fff;
+}
+.memory-form { background: #fff; margin: 0 16px 16px; border-radius: 12px; padding: 16px; display: none; }
+.memory-form.show { display: block; }
+.memory-card {
+  background: #fff; border-radius: 12px; padding: 16px; margin: 0 16px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.memory-card .memory-header { margin-bottom: 8px; }
+.memory-card .memory-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.memory-card .memory-key { font-size: 17px; font-weight: 600; color: #333; }
+.memory-card .source-badge {
+  padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: #555;
+}
+.memory-card .source-badge.manual { background: #E8F5E9; }
+.memory-card .source-badge.auto { background: #E3F2FD; }
+.memory-card .memory-date { font-size: 12px; color: #AAA; }
+.memory-card .memory-content { font-size: 15px; color: #555; line-height: 22px; margin-bottom: 10px; }
+.memory-card .memory-actions { display: flex; gap: 12px; }
+.memory-card .memory-action-btn {
+  padding: 6px 12px; border-radius: 6px; background: #F0F4F8;
+  font-size: 13px; font-weight: 600; color: #4A90D9; cursor: pointer;
+}
+.memory-card .memory-action-btn.delete { color: #E74C3C; }
+
+/* Preset Answers */
+#screen-preset-answers { background: #F0F4F8; overflow-y: auto; }
+.add-preset-btn {
+  margin: 16px; background: #4A90D9; border-radius: 12px; padding: 14px;
+  text-align: center; cursor: pointer; font-size: 17px; font-weight: 600; color: #fff;
+}
+.preset-form { background: #fff; margin: 0 16px 16px; border-radius: 12px; padding: 16px; display: none; }
+.preset-form.show { display: block; }
+.save-btn {
+  background: #4A90D9; border-radius: 8px; padding: 12px; text-align: center;
+  cursor: pointer; font-size: 16px; font-weight: 600; color: #fff;
+}
+.preset-card {
+  background: #fff; border-radius: 12px; padding: 16px; margin: 0 16px 12px; position: relative;
+}
+.preset-card .delete-btn { position: absolute; top: 8px; right: 12px; font-size: 24px; color: #E74C3C; cursor: pointer; }
+.preset-card .q-label, .preset-card .a-label { font-size: 12px; color: #999; margin-bottom: 2px; }
+.preset-card .q-text { font-size: 16px; color: #333; font-weight: 500; margin-bottom: 10px; }
+.preset-card .a-text { font-size: 16px; color: #555; margin-bottom: 8px; }
+.preset-card .keywords { font-size: 12px; color: #AAA; }
+
+/* Unknown Queries */
+#screen-unknown-queries { background: #F0F4F8; overflow-y: auto; }
+.filter-btn { margin: 16px; text-align: right; color: #4A90D9; font-size: 14px; cursor: pointer; }
+.query-card { background: #fff; border-radius: 12px; padding: 16px; margin: 0 16px 12px; }
+.query-card .query-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.query-card .grandpa-name { font-size: 14px; color: #4A90D9; font-weight: 600; }
+.query-card .date { font-size: 12px; color: #999; }
+.query-card .question-text { font-size: 18px; color: #333; margin-bottom: 12px; }
+.respond-btn {
+  background: #E8F0FE; border-radius: 8px; padding: 8px 16px; display: inline-block;
+  cursor: pointer; color: #4A90D9; font-size: 14px; font-weight: 600;
+}
+.reply-form { margin-top: 8px; display: none; }
+.reply-form.show { display: block; }
+.reply-input {
+  background: #F5F7FA; border-radius: 8px; padding: 12px; font-size: 16px;
+  border: 1px solid #E0E0E0; width: 100%; outline: none; font-family: inherit;
+  min-height: 80px; resize: none;
+}
+.reply-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+.reply-cancel { padding: 8px 16px; color: #999; font-size: 14px; cursor: pointer; }
+.reply-save {
+  background: #4A90D9; border-radius: 8px; padding: 8px 16px;
+  color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.answered-badge {
+  display: inline-block; background: #E8F5E9; border-radius: 8px;
+  padding: 4px 12px; color: #4CAF50; font-size: 12px; font-weight: 600;
+}
+
+.home-indicator {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  width: 134px; height: 5px; background: #333; border-radius: 3px; z-index: 100;
+}
+.screen::-webkit-scrollbar { width: 0; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.screen.active { animation: fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="notch"></div>
+  <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+  <div class="nav-bar" id="nav-bar" style="display:none;">
+    <span class="back-btn" id="back-btn">‹ 返回</span>
+    <span class="nav-title" id="nav-title"></span>
+    <span class="nav-right" id="nav-right"></span>
+  </div>
+
+  <!-- Home Screen (new user) -->
+  <div class="screen no-nav active" id="screen-home">
+    <div class="header">
+      <div class="app-name">Uni</div>
+      <div class="subtitle">重要的人，有你陪伴</div>
+    </div>
+    <div class="home-cards">
+      <div class="home-card blue" onclick="navigate('creator-login')">
+        <div class="card-icon">👤</div>
+        <div class="card-title">管理分身</div>
+        <div class="card-desc">创建你的数字分身</div>
+        <div class="card-btn">立即创建</div>
+      </div>
+      <div class="home-card orange" onclick="navigate('pairing')">
+        <div class="card-icon">💬</div>
+        <div class="card-title">开始聊天</div>
+        <div class="card-desc">输入配对码，开始聊天</div>
+        <div class="card-btn">输入配对码</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home Screen (logged in) -->
+  <div class="screen no-nav" id="screen-home-loggedin">
+    <div class="header">
+      <div class="app-name">Uni</div>
+      <div class="subtitle">重要的人，有你陪伴</div>
+    </div>
+    <div class="home-cards">
+      <div class="home-card blue" onclick="navigate('dashboard')">
+        <div class="card-icon">👤</div>
+        <div class="card-title">管理分身</div>
+        <div class="card-status">小明</div>
+        <div class="card-btn">进入管理</div>
+      </div>
+      <div class="home-card orange" onclick="navigate('chat')">
+        <div class="card-icon">💬</div>
+        <div class="card-title">开始聊天</div>
+        <div class="card-status">正在和「爷爷」聊天</div>
+        <div class="card-btn">继续聊天</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Creator Login -->
+  <div class="screen" id="screen-creator-login">
+    <div class="login-form">
+      <div class="form-title" id="login-title">登录</div>
+      <input class="form-input" id="login-name" placeholder="你的称呼" style="display:none;">
+      <input class="form-input" placeholder="邮箱" type="email">
+      <input class="form-input" placeholder="密码（至少6位）" type="password">
+      <div class="primary-btn" onclick="navigate('avatar-setup')">
+        <div class="btn-text" id="login-btn-text">登录</div>
+      </div>
+      <div class="switch-link" id="login-switch" onclick="toggleLoginMode()">没有账号？去注册</div>
+    </div>
+  </div>
+
+  <!-- Avatar Setup -->
+  <div class="screen" id="screen-avatar-setup">
+    <div class="title">创建分身</div>
+    <div class="form-subtitle">填写信息，AI 会根据这些信息来聊天</div>
+    <div class="field-label">分身名称 *</div>
+    <input class="form-input" placeholder="如：小明、护理员小李" value="小明">
+    <div class="field-label">聊天对象的称呼 *</div>
+    <input class="form-input" placeholder="如：爷爷、王奶奶" value="爷爷">
+    <div class="field-label">分身的人设描述</div>
+    <textarea class="form-input text-area-input" placeholder="如：我是你的孙子小明，在深圳工作...">我是你的孙子小明，在深圳工作，平时喜欢打篮球</textarea>
+    <div class="field-label">AI 语气风格</div>
+    <input class="form-input" placeholder="语气亲切、温柔，像家人一样聊天" value="语气活泼开朗，像年轻人聊天">
+
+    <div class="advanced-toggle" onclick="toggleAdvanced()">
+      <span class="toggle-text">高级性格设置</span>
+      <span class="toggle-arrow" id="advanced-arrow">▼</span>
+    </div>
+
+    <div class="advanced-panel" id="advanced-panel">
+      <div class="section-title">基础信息</div>
+
+      <div class="sub-label">年龄：30 岁</div>
+      <div class="trait-slider" style="margin:8px 0;">
+        <div class="fill" style="width:30%;"></div>
+        <div class="thumb" style="left:30%;"></div>
+      </div>
+
+      <div class="sub-label">职业</div>
+      <input class="form-input" placeholder="如：教师、工程师、退休" style="font-size:18px;">
+
+      <div class="sub-label">与聊天对象的关系</div>
+      <div class="chip-row">
+        <span class="chip active">孙子</span>
+        <span class="chip">孙女</span>
+        <span class="chip">儿子</span>
+        <span class="chip">女儿</span>
+        <span class="chip">配偶</span>
+        <span class="chip">朋友</span>
+        <span class="chip">护理员</span>
+        <span class="chip">其他</span>
+      </div>
+
+      <div class="section-title" style="margin-top:24px;">性格特征</div>
+
+      <div class="trait-row">
+        <div class="trait-label">外向程度</div>
+        <div class="trait-slider-area">
+          <span class="trait-range-label">内向</span>
+          <div class="trait-slider" style="flex:1;"><div class="fill" style="width:50%;"></div><div class="thumb" style="left:50%;"></div></div>
+          <span class="trait-range-label">外向</span>
+        </div>
+        <div class="trait-value">5</div>
+      </div>
+
+      <div class="trait-row">
+        <div class="trait-label">幽默感</div>
+        <div class="trait-slider-area">
+          <span class="trait-range-label">严肃</span>
+          <div class="trait-slider" style="flex:1;"><div class="fill" style="width:50%;"></div><div class="thumb" style="left:50%;"></div></div>
+          <span class="trait-range-label">幽默</span>
+        </div>
+        <div class="trait-value">5</div>
+      </div>
+
+      <div class="trait-row">
+        <div class="trait-label">温暖程度</div>
+        <div class="trait-slider-area">
+          <span class="trait-range-label">冷静</span>
+          <div class="trait-slider" style="flex:1;"><div class="fill" style="width:50%;"></div><div class="thumb" style="left:50%;"></div></div>
+          <span class="trait-range-label">温暖</span>
+        </div>
+        <div class="trait-value">5</div>
+      </div>
+
+      <div class="trait-row">
+        <div class="trait-label">耐心程度</div>
+        <div class="trait-slider-area">
+          <span class="trait-range-label">一般</span>
+          <div class="trait-slider" style="flex:1;"><div class="fill" style="width:50%;"></div><div class="thumb" style="left:50%;"></div></div>
+          <span class="trait-range-label">极耐心</span>
+        </div>
+        <div class="trait-value">5</div>
+      </div>
+
+      <div class="trait-row">
+        <div class="trait-label">好奇心</div>
+        <div class="trait-slider-area">
+          <span class="trait-range-label">低调</span>
+          <div class="trait-slider" style="flex:1;"><div class="fill" style="width:50%;"></div><div class="thumb" style="left:50%;"></div></div>
+          <span class="trait-range-label">好奇</span>
+        </div>
+        <div class="trait-value">5</div>
+      </div>
+
+      <div class="section-title" style="margin-top:24px;">兴趣爱好</div>
+      <div class="interest-input-row">
+        <input class="form-input" placeholder="输入兴趣，点击添加" style="font-size:18px;">
+        <div class="add-tag-btn"><span>添加</span></div>
+      </div>
+      <div class="tag-row">
+        <div class="tag"><span>打篮球</span><span class="tag-remove">×</span></div>
+        <div class="tag"><span>看电影</span><span class="tag-remove">×</span></div>
+      </div>
+
+      <div class="section-title" style="margin-top:24px;">对话偏好</div>
+
+      <div class="pref-label">回复长度</div>
+      <div class="segmented">
+        <div class="seg-btn">简短</div>
+        <div class="seg-btn active">适中</div>
+        <div class="seg-btn">详细</div>
+      </div>
+
+      <div class="switch-row">
+        <span class="switch-label">使用表情符号</span>
+        <div class="toggle-switch"></div>
+      </div>
+
+      <div class="pref-label">语气正式度</div>
+      <div class="segmented">
+        <div class="seg-btn">随意</div>
+        <div class="seg-btn active">一般</div>
+        <div class="seg-btn">正式</div>
+      </div>
+
+      <div class="pref-label">话题深度</div>
+      <div class="segmented">
+        <div class="seg-btn">轻松</div>
+        <div class="seg-btn active">一般</div>
+        <div class="seg-btn">深入</div>
+      </div>
+    </div>
+
+    <div class="primary-btn" onclick="navigate('code-display')" style="margin-top:28px;margin-bottom:24px;">
+      <div class="btn-text">生成配对码</div>
+    </div>
+  </div>
+
+  <!-- Code Display -->
+  <div class="screen no-nav" id="screen-code-display">
+    <div class="code-card">
+      <div class="card-title">配对码已生成</div>
+      <div class="card-subtitle">把下面的配对码分享给聊天对象，<br>在 app 中输入后即可聊天</div>
+      <div class="code-box">
+        <div class="code">382617</div>
+      </div>
+      <div class="share-btn">📤 分享配对码</div>
+    </div>
+    <div class="enter-admin-btn" onclick="navigate('dashboard')">进入管理页面</div>
+  </div>
+
+  <!-- Pairing Screen -->
+  <div class="screen no-nav" id="screen-pairing">
+    <div class="title">输入配对码</div>
+    <div class="subtitle">请输入分享给你的配对码</div>
+    <div class="pairing-code-display">
+      <div class="code-text" id="code-input">_ _ _ _ _ _</div>
+    </div>
+    <div class="keypad">
+      <div class="key" onclick="pressKey('1')">1</div>
+      <div class="key" onclick="pressKey('2')">2</div>
+      <div class="key" onclick="pressKey('3')">3</div>
+      <div class="key" onclick="pressKey('4')">4</div>
+      <div class="key" onclick="pressKey('5')">5</div>
+      <div class="key" onclick="pressKey('6')">6</div>
+      <div class="key" onclick="pressKey('7')">7</div>
+      <div class="key" onclick="pressKey('8')">8</div>
+      <div class="key" onclick="pressKey('9')">9</div>
+      <div class="key empty"></div>
+      <div class="key" onclick="pressKey('0')">0</div>
+      <div class="key" onclick="pressKey('del')">⌫</div>
+    </div>
+    <div class="verify-btn hidden" id="verify-btn" onclick="navigate('chat')">开始聊天</div>
+  </div>
+
+  <!-- Creator Dashboard -->
+  <div class="screen" id="screen-dashboard">
+    <div class="avatar-card">
+      <div class="avatar-header">
+        <span class="avatar-emoji">🤖</span>
+        <span class="avatar-name">小明</span>
+      </div>
+      <div class="info-line"><span class="info-label">聊天对象</span><span class="info-value">爷爷</span></div>
+      <div class="info-line"><span class="info-label">配对码</span><span class="pairing-code">382617</span></div>
+      <div class="action-row">
+        <span class="action-btn" onclick="navigate('chat')">查看聊天</span>
+        <span class="action-btn" onclick="navigate('memories')">记忆管理</span>
+        <span class="action-btn" onclick="navigate('preset-answers')">预设问答</span>
+        <span class="action-btn" onclick="navigate('unknown-queries')">未知问题</span>
+        <span class="action-btn" onclick="navigate('avatar-setup')">编辑</span>
+        <span class="action-btn">分享码</span>
+      </div>
+    </div>
+
+    <div class="avatar-card">
+      <div class="avatar-header">
+        <span class="avatar-emoji">🤖</span>
+        <span class="avatar-name">护理员小李</span>
+      </div>
+      <div class="info-line"><span class="info-label">聊天对象</span><span class="info-value">王奶奶</span></div>
+      <div class="info-line"><span class="info-label">配对码</span><span class="pairing-code">519284</span></div>
+      <div class="action-row">
+        <span class="action-btn">查看聊天</span>
+        <span class="action-btn">记忆管理</span>
+        <span class="action-btn">预设问答</span>
+        <span class="action-btn">未知问题</span>
+        <span class="action-btn">编辑</span>
+        <span class="action-btn">分享码</span>
+      </div>
+    </div>
+
+    <div class="dash-create-btn" onclick="navigate('avatar-setup')">
+      <span class="create-icon">+</span>
+      <span class="create-text">新建分身</span>
+    </div>
+
+    <div class="dash-switch-btn" onclick="navigate('chat')">🔄 切换为聊天对象</div>
+
+    <div class="dash-logout-btn" onclick="navigate('home')">退出登录</div>
+  </div>
+
+  <!-- Chat (with messages) -->
+  <div class="screen" id="screen-chat">
+    <div class="chat-area" id="chat-area">
+      <div class="msg-row ai"><div class="bubble ai"><div class="role-label">爷爷</div><div class="msg-text">爷爷你好呀！今天过得怎么样？有什么想聊的吗？</div></div></div>
+      <div class="msg-row user"><div class="bubble user"><div class="msg-text">今天天气真好，出去散步了</div></div></div>
+      <div class="msg-row ai"><div class="bubble ai"><div class="role-label">爷爷</div><div class="msg-text">散步好呀！呼吸新鲜空气对身体好。你一般去哪里散步呢？公园里走走心情会特别好。</div></div></div>
+      <div class="msg-row user"><div class="bubble user"><div class="msg-text">就在小区里走了走，遇到几个老邻居</div></div></div>
+      <div class="msg-row ai"><div class="bubble ai"><div class="role-label">爷爷</div><div class="msg-text">和老邻居聊聊天也挺好的！大家互相认识，说说话，日子过得有滋味。</div></div></div>
+    </div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chat-input" placeholder="输入消息..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <div class="send-btn" onclick="sendMsg()">发送</div>
+    </div>
+  </div>
+
+  <!-- Chat (empty state) -->
+  <div class="screen" id="screen-chat-empty">
+    <div class="chat-empty">
+      <div class="empty-icon">💬</div>
+      <div class="empty-text">开始和爷爷聊天吧！</div>
+      <div class="empty-hint">你可以问任何问题，爷爷会尽力回答</div>
+    </div>
+    <div class="chat-input-area">
+      <input class="chat-input" placeholder="输入消息...">
+      <div class="send-btn">发送</div>
+    </div>
+  </div>
+
+  <!-- Memories -->
+  <div class="screen" id="screen-memories">
+    <div class="search-bar">
+      <input class="search-input" placeholder="搜索记忆...">
+    </div>
+    <div class="add-memory-btn" onclick="toggleMemoryForm()">+ 添加记忆</div>
+    <div class="memory-form" id="memory-form">
+      <input class="form-input" placeholder="记忆标题（如：喜欢的食物）" style="font-size:16px;padding:12px;">
+      <textarea class="form-input" placeholder="记忆内容（如：喜欢吃红烧肉，不喜欢吃辣的）" style="font-size:16px;padding:12px;min-height:100px;resize:none;"></textarea>
+      <div class="save-btn" onclick="toggleMemoryForm()">保存</div>
+    </div>
+    <div class="memory-card">
+      <div class="memory-header">
+        <div class="memory-title-row">
+          <span class="memory-key">喜欢的食物</span>
+          <span class="source-badge manual">手动</span>
+        </div>
+        <div class="memory-date">2026-06-10</div>
+      </div>
+      <div class="memory-content">喜欢吃红烧肉、清蒸鲈鱼，不喜欢吃辣的。早上喜欢吃小米粥配咸菜。</div>
+      <div class="memory-actions">
+        <span class="memory-action-btn">编辑</span>
+        <span class="memory-action-btn delete">删除</span>
+      </div>
+    </div>
+    <div class="memory-card">
+      <div class="memory-header">
+        <div class="memory-title-row">
+          <span class="memory-key">日常作息</span>
+          <span class="source-badge auto">自动</span>
+        </div>
+        <div class="memory-date">2026-06-11</div>
+      </div>
+      <div class="memory-content">一般早上6点起床，中午会午休1小时，晚上9点左右睡觉。每天下午会去小区花园散步。</div>
+      <div class="memory-actions">
+        <span class="memory-action-btn">编辑</span>
+        <span class="memory-action-btn delete">删除</span>
+      </div>
+    </div>
+    <div class="memory-card">
+      <div class="memory-header">
+        <div class="memory-title-row">
+          <span class="memory-key">家庭成员</span>
+          <span class="source-badge manual">手动</span>
+        </div>
+        <div class="memory-date">2026-06-09</div>
+      </div>
+      <div class="memory-content">儿子在深圳工作，女儿在广州。有两个孙子，大孙子叫小明，小孙子叫小强。</div>
+      <div class="memory-actions">
+        <span class="memory-action-btn">编辑</span>
+        <span class="memory-action-btn delete">删除</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preset Answers -->
+  <div class="screen" id="screen-preset-answers">
+    <div class="add-preset-btn" onclick="togglePresetForm()">+ 添加预设问答</div>
+    <div class="preset-form" id="preset-form">
+      <input class="form-input" placeholder="关键词（用逗号分隔，如：天气,下雨,带伞）" style="font-size:16px;padding:12px;">
+      <input class="form-input" placeholder="常见问题" style="font-size:16px;padding:12px;">
+      <textarea class="form-input" placeholder="预设回答" style="font-size:16px;padding:12px;min-height:80px;resize:none;"></textarea>
+      <div class="save-btn" onclick="togglePresetForm()">保存</div>
+    </div>
+    <div class="preset-card">
+      <div class="delete-btn">×</div>
+      <div class="q-label">问题</div><div class="q-text">家里电话是多少？</div>
+      <div class="a-label">回答</div><div class="a-text">儿子的电话是 138-0000-1234，有事可以打这个电话找他。</div>
+      <div class="keywords">关键词：电话,号码,联系方式,儿子</div>
+    </div>
+    <div class="preset-card">
+      <div class="delete-btn">×</div>
+      <div class="q-label">问题</div><div class="q-text">今天吃什么药？</div>
+      <div class="a-label">回答</div><div class="a-text">每天早上吃一片降压药（白色的），晚饭后吃一片降糖药（蓝色的）。</div>
+      <div class="keywords">关键词：吃药,药,降压药,降糖药</div>
+    </div>
+  </div>
+
+  <!-- Unknown Queries -->
+  <div class="screen" id="screen-unknown-queries">
+    <div class="filter-btn" onclick="toggleFilter()">查看已回复的问题</div>
+    <div class="query-card">
+      <div class="query-header"><span class="grandpa-name">爷爷</span><span class="date">2026/6/11</span></div>
+      <div class="question-text">隔壁老王说的那个理财产品是什么？</div>
+      <span class="respond-btn" onclick="toggleReply(this)">回复</span>
+      <div class="reply-form">
+        <textarea class="reply-input" placeholder="输入你的回答..."></textarea>
+        <div class="reply-actions">
+          <span class="reply-cancel" onclick="toggleReply(this)">取消</span>
+          <span class="reply-save">回复并保存</span>
+        </div>
+      </div>
+    </div>
+    <div class="query-card">
+      <div class="query-header"><span class="grandpa-name">爷爷</span><span class="date">2026/6/10</span></div>
+      <div class="question-text">医保报销比例是多少？</div>
+      <span class="respond-btn" onclick="toggleReply(this)">回复</span>
+      <div class="reply-form">
+        <textarea class="reply-input" placeholder="输入你的回答..."></textarea>
+        <div class="reply-actions">
+          <span class="reply-cancel" onclick="toggleReply(this)">取消</span>
+          <span class="reply-save">回复并保存</span>
+        </div>
+      </div>
+    </div>
+    <div class="query-card">
+      <div class="query-header"><span class="grandpa-name">爷爷</span><span class="date">2026/6/9</span></div>
+      <div class="question-text">怎么去社区医院？</div>
+      <span class="answered-badge">已回复</span>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<div class="page-tabs" id="page-tabs">
+  <div class="page-tab active" onclick="navigate('home')">首页(新用户)</div>
+  <div class="page-tab" onclick="navigate('home-loggedin')">首页(已登录)</div>
+  <div class="page-tab" onclick="navigate('creator-login')">创建者登录</div>
+  <div class="page-tab" onclick="navigate('avatar-setup')">分身设置</div>
+  <div class="page-tab" onclick="navigate('code-display')">配对码</div>
+  <div class="page-tab" onclick="navigate('pairing')">输入配对码</div>
+  <div class="page-tab" onclick="navigate('dashboard')">管理仪表板</div>
+  <div class="page-tab" onclick="navigate('chat')">聊天界面</div>
+  <div class="page-tab" onclick="navigate('chat-empty')">聊天(空状态)</div>
+  <div class="page-tab" onclick="navigate('memories')">记忆管理</div>
+  <div class="page-tab" onclick="navigate('preset-answers')">预设问答</div>
+  <div class="page-tab" onclick="navigate('unknown-queries')">未知问题</div>
+</div>
+
+<script>
+const navConfig = {
+  'home':          { title: '', showNav: false },
+  'home-loggedin': { title: '', showNav: false },
+  'creator-login': { title: '登录', showNav: true, back: 'home', right: '' },
+  'avatar-setup':  { title: '分身设置', showNav: true, back: 'dashboard', right: '' },
+  'code-display':  { title: '配对码', showNav: false },
+  'pairing':       { title: '输入配对码', showNav: false },
+  'dashboard':     { title: '我的分身', showNav: true, back: 'home', right: '' },
+  'chat':          { title: '陪「爷爷」聊天', showNav: true, back: 'home', right: '', exitBtn: true },
+  'chat-empty':    { title: '陪「爷爷」聊天', showNav: true, back: 'home', right: '', exitBtn: true },
+  'memories':      { title: '记忆管理', showNav: true, back: 'dashboard', right: '' },
+  'preset-answers':{ title: '预设问答', showNav: true, back: 'dashboard', right: '' },
+  'unknown-queries':{ title: '未知问题', showNav: true, back: 'dashboard', right: '' },
+};
+
+let pairingCode = '';
+
+function navigate(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const screen = document.getElementById('screen-' + screenId);
+  if (screen) screen.classList.add('active');
+  const config = navConfig[screenId];
+  const navBar = document.getElementById('nav-bar');
+  if (config.showNav) {
+    navBar.style.display = 'flex';
+    document.getElementById('nav-title').textContent = config.title;
+    const backBtn = document.getElementById('back-btn');
+    if (config.exitBtn) {
+      backBtn.textContent = '退出';
+      backBtn.style.fontSize = '16px';
+    } else {
+      backBtn.textContent = '‹ 返回';
+      backBtn.style.fontSize = '16px';
+    }
+    backBtn.onclick = () => navigate(config.back);
+    document.getElementById('nav-right').textContent = config.right || '';
+    document.getElementById('nav-right').onclick = config.right ? () => navigate('avatar-setup') : null;
+    screen.classList.remove('no-nav');
+  } else {
+    navBar.style.display = 'none';
+    screen.classList.add('no-nav');
+  }
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  const tabs = document.querySelectorAll('.page-tab');
+  const order = ['home','home-loggedin','creator-login','avatar-setup','code-display','pairing','dashboard','chat','chat-empty','memories','preset-answers','unknown-queries'];
+  const idx = order.indexOf(screenId);
+  if (idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+}
+
+function toggleLoginMode() {
+  const isRegister = document.getElementById('login-title').textContent === '登录';
+  document.getElementById('login-title').textContent = isRegister ? '注册' : '登录';
+  document.getElementById('login-btn-text').textContent = isRegister ? '注册' : '登录';
+  document.getElementById('login-name').style.display = isRegister ? 'block' : 'none';
+  document.getElementById('login-switch').textContent = isRegister ? '已有账号？去登录' : '没有账号？去注册';
+}
+
+function toggleAdvanced() {
+  const panel = document.getElementById('advanced-panel');
+  const arrow = document.getElementById('advanced-arrow');
+  panel.classList.toggle('show');
+  arrow.textContent = panel.classList.contains('show') ? '▲' : '▼';
+}
+
+function pressKey(key) {
+  if (key === 'del') { pairingCode = pairingCode.slice(0, -1); }
+  else if (pairingCode.length < 6) { pairingCode += key; }
+  const display = pairingCode.padEnd(6, '_').split('').join(' ');
+  document.getElementById('code-input').textContent = display;
+  const btn = document.getElementById('verify-btn');
+  if (pairingCode.length === 6) { btn.classList.remove('hidden'); }
+  else { btn.classList.add('hidden'); }
+}
+
+function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const chatArea = document.getElementById('chat-area');
+  const userRow = document.createElement('div');
+  userRow.className = 'msg-row user';
+  userRow.innerHTML = `<div class="bubble user"><div class="msg-text">${text}</div></div>`;
+  chatArea.appendChild(userRow);
+  input.value = '';
+  chatArea.scrollTop = chatArea.scrollHeight;
+  setTimeout(() => {
+    const replies = ['好的，我明白你的意思了。','嗯嗯，你说的有道理。','这个想法不错！你打算怎么做呢？','别着急，慢慢来，有什么需要帮忙的尽管说。','听起来很有意思，继续说说看？'];
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    const aiRow = document.createElement('div');
+    aiRow.className = 'msg-row ai';
+    aiRow.innerHTML = `<div class="bubble ai"><div class="role-label">爷爷</div><div class="msg-text">${reply}</div></div>`;
+    chatArea.appendChild(aiRow);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }, 800);
+}
+
+function togglePresetForm() { document.getElementById('preset-form').classList.toggle('show'); }
+function toggleMemoryForm() { document.getElementById('memory-form').classList.toggle('show'); }
+function toggleFilter() {
+  const btn = document.querySelector('.filter-btn');
+  btn.textContent = btn.textContent.includes('已回复') ? '查看未回复的问题' : '查看已回复的问题';
+}
+function toggleReply(el) {
+  const card = el.closest('.query-card');
+  const form = card.querySelector('.reply-form');
+  form.classList.toggle('show');
+}
+</script>
+</body>
+</html>
