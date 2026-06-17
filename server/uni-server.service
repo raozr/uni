@@ -1,0 +1,68 @@
+# Uni Server - systemd 服务模板
+# 用于生产环境，实现开机自启、崩溃自动重启
+#
+# 安装步骤:
+#   1. 复制此文件: sudo cp uni-server.service /etc/systemd/system/uni-server.service
+#   2. 按实际路径修改下方 WorkingDirectory 和 ExecStart
+#   3. 按实际用户修改 User=
+#   4. 启用服务:
+#        sudo systemctl daemon-reload
+#        sudo systemctl enable uni-server   # 开机自启
+#        sudo systemctl start uni-server     # 立即启动
+#   5. 查看状态: sudo systemctl status uni-server
+#   6. 查看日志: sudo journalctl -u uni-server -f
+#
+# 常用命令:
+#   sudo systemctl start uni-server       # 启动
+#   sudo systemctl stop uni-server        # 停止
+#   sudo systemctl restart uni-server    # 重启
+#   sudo systemctl status uni-server     # 状态
+#   sudo journalctl -u uni-server -f     # 实时日志
+
+[Unit]
+Description=Uni Server - 数字分身专属陪伴应用后端
+Documentation=https://github.com/raozr/uni
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+
+# ====== 按实际环境修改以下配置 ======
+# 运行服务的用户（生产环境建议用非 root 用户）
+User=www-data
+# 或: User=ubuntu / User=root
+
+# 项目目录（绝对路径）
+WorkingDirectory=/opt/uni/server
+
+# 启动命令
+ExecStart=/usr/bin/node dist/index.js
+
+# 环境文件（可选，也可用 EnvironmentFile）
+EnvironmentFile=/opt/uni/server/.env
+
+# 额外环境变量
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=0.0.0.0
+# ==================================
+
+# 重启策略
+Restart=always
+RestartSec=5
+
+# 日志
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=uni-server
+
+# 资源限制
+LimitNOFILE=65536
+
+# 安全加固
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
