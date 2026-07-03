@@ -44,20 +44,23 @@ function generatePairingCode(): string {
   return crypto.randomInt(0, 1000000).toString().padStart(6, '0');
 }
 
-async function generateUniquePairingCode(): Promise<string> {
-  for (let i = 0; i < 5; i++) {
+async function insertAvatarWithUniqueCode(
+  columns: string,
+  values: any[],
+  codeParamIndex: number
+): Promise<any> {
+  const MAX_RETRIES = 5;
+  for (let i = 0; i < MAX_RETRIES; i++) {
     const code = generatePairingCode();
-    try {
-      const result = await query(
-        'INSERT INTO avatars (pairing_code) VALUES ($1) ON CONFLICT (pairing_code) DO NOTHING RETURNING 1',
-        [code]
-      );
-      if (result.rows.length > 0) {
-        await query('DELETE FROM avatars WHERE pairing_code = $1 AND creator_id IS NULL', [code]);
-        return code;
-      }
-    } catch (err) {
-      // fall through to retry
+    values[codeParamIndex] = code;
+    const result = await query(
+      `INSERT INTO avatars (${columns}) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       ON CONFLICT (pairing_code) DO NOTHING
+       RETURNING *`,
+      values
+    );
+    if (result.rows.length > 0) {
+      return result.rows[0];
     }
   }
   throw new Error('生成唯一配对码失败，请稍后重试');
@@ -88,26 +91,25 @@ router.post(
     const creatorId = req.user!.id;
 
     try {
-      const pairingCode = await generateUniquePairingCode();
+      const values = [
+        creatorId, name, target_name,
+        persona || '', ai_tone || '语气亲切、温柔，像家人一样聊天', null,
+        age || null, occupation || null, relationship || null,
+        personality_traits ? JSON.stringify(personality_traits) : null,
+        interests ? JSON.stringify(interests) : null,
+        dialogue_preferences ? JSON.stringify(dialogue_preferences) : null,
+      ];
 
-      const result = await query(
-        `INSERT INTO avatars (creator_id, name, target_name, persona, ai_tone, pairing_code, age, occupation, relationship, personality_traits, interests, dialogue_preferences)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-         RETURNING *`,
-        [
-          creatorId, name, target_name,
-          persona || '', ai_tone || '语气亲切、温柔，像家人一样聊天', pairingCode,
-          age || null, occupation || null, relationship || null,
-          personality_traits ? JSON.stringify(personality_traits) : null,
-          interests ? JSON.stringify(interests) : null,
-          dialogue_preferences ? JSON.stringify(dialogue_preferences) : null,
-        ]
+      const avatar = await insertAvatarWithUniqueCode(
+        'creator_id, name, target_name, persona, ai_tone, pairing_code, age, occupation, relationship, personality_traits, interests, dialogue_preferences',
+        values,
+        5
       );
 
-      res.status(201).json({ avatar: result.rows[0] });
+      res.status(201).json({ avatar });
     } catch (err) {
       console.error('Create avatar error:', err);
-      res.status(500).json({ error: '创建头像配置失败' });
+      res.status(500).json({ error: err instanceof Error ? err.message : '创建头像配置失败' });
     }
   }
 );
@@ -276,14 +278,22 @@ router.post('/:id/regenerate-code', authenticate, async (req: AuthRequest, res: 
       return res.status(404).json({ error: '头像配置不存在' });
     }
 
-    let pairingCode: string;
-    try {
-      pairingCode = await generateUniquePairingCode();
-    } catch (e) {
-      return res.status(500).json({ error: (e as Error).message });
+    let pairingCode: string | null = null;
+    for (let i = 0; i < 5; i++) {
+      const code = generatePairingCode();
+      const conflictCheck = await query(
+        'UPDATE avatars SET pairing_code = $1 WHERE id = $2 AND NOT EXISTS (SELECT 1 FROM avatars WHERE pairing_code = $1 AND id <> $2) RETURNING pairing_code',
+        [code, avatarId]
+      );
+      if (conflictCheck.rows.length > 0) {
+        pairingCode = conflictCheck.rows[0].pairing_code;
+        break;
+      }
     }
 
-    await query('UPDATE avatars SET pairing_code = $1 WHERE id = $2', [pairingCode, avatarId]);
+    if (!pairingCode) {
+      return res.status(500).json({ error: '生成唯一配对码失败，请稍后重试' });
+    }
 
     res.json({ pairing_code: pairingCode });
   } catch (err) {
