@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uni - 重要的人，有你陪伴</title>
+  <meta name="description" content="Uni 是一款数字分身陪伴应用，帮助照护者创建 AI 分身，让重要的人用配对码开始自然聊天。">
+  <style>
+    :root {
+      --ink: #17262d;
+      --ink-2: #2d4248;
+      --muted: #66787d;
+      --subtle: #8b989b;
+      --surface: rgba(255, 255, 255, 0.66);
+      --surface-strong: rgba(255, 255, 255, 0.86);
+      --line: rgba(255, 255, 255, 0.58);
+      --line-dark: rgba(41, 74, 80, 0.12);
+      --primary: #146d72;
+      --primary-2: #0f555d;
+      --primary-soft: rgba(20, 109, 114, 0.13);
+      --coral: #d77b55;
+      --coral-soft: rgba(215, 123, 85, 0.16);
+      --success: #357b5c;
+      --page-a: #f0f9f4;
+      --page-b: #f7f1e5;
+      --page-c: #e2eef6;
+      --shadow-card: 0 14px 34px rgba(35, 62, 67, 0.14), inset 0 1px 0 rgba(255,255,255,.72);
+      --shadow-float: 0 24px 60px rgba(33, 58, 64, 0.22);
+      --blur: blur(24px) saturate(1.25);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(120deg, rgba(255,255,255,.36) 0 1px, transparent 1px 84px),
+        linear-gradient(160deg, var(--page-a) 0%, var(--page-b) 52%, var(--page-c) 100%);
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .site {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+    }
+
+    .site::before {
+      content: "";
+      position: absolute;
+      inset: -160px -20vw auto -20vw;
+      height: 560px;
+      z-index: -1;
+      background:
+        conic-gradient(from 210deg at 55% 45%, rgba(20,109,114,.34), rgba(220,236,223,.76), rgba(232,225,244,.72), rgba(251,243,228,.9), rgba(20,109,114,.34));
+      filter: blur(42px) saturate(1.16);
+      opacity: .92;
+      transform: skewY(-7deg);
+    }
+
+    .nav {
+      position: sticky;
+      top: 16px;
+      z-index: 20;
+      width: min(1120px, calc(100% - 32px));
+      margin: 16px auto 0;
+      padding: 10px 12px 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255,255,255,.52);
+      box-shadow: 0 8px 20px rgba(35, 62, 67, 0.10);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      box-shadow: 0 8px 18px rgba(20,109,114,.18);
+    }
+
+    .brand span {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .nav-download {
+      padding: 10px 16px;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 12px 24px rgba(20,109,114,.22), inset 0 1px 0 rgba(255,255,255,.26);
+    }
+
+    .hero {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      min-height: calc(100vh - 84px);
+      padding: 86px 0 46px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 410px;
+      gap: 58px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(20,109,114,.18);
+      background: var(--primary-soft);
+      color: var(--primary-2);
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-size: clamp(64px, 10vw, 112px);
+      line-height: .9;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .hero-copy {
+      max-width: 610px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1.5;
+      font-weight: 800;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 20px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 900;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 12px 24px rgba(20,109,114,.22), inset 0 1px 0 rgba(255,255,255,.26);
+    }
+
+    .btn-soft {
+      color: var(--primary-2);
+      background: rgba(255,255,255,.56);
+      border-color: var(--line);
+      box-shadow: var(--shadow-card);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+    }
+
+    .hero-note {
+      margin-top: 16px;
+      color: var(--subtle);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .phone-shell {
+      width: min(100%, 375px);
+      min-height: 728px;
+      justify-self: end;
+      position: relative;
+      padding: 12px;
+      border-radius: 42px;
+      background: #111f25;
+      box-shadow: 0 28px 80px rgba(33, 58, 64, .34);
+    }
+
+    .phone {
+      min-height: 704px;
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+      padding: 40px 18px 22px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.38), transparent 26%),
+        linear-gradient(160deg, rgba(240,249,244,.96), rgba(247,241,229,.95) 54%, rgba(226,238,246,.96));
+      isolation: isolate;
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 132px;
+      height: 28px;
+      transform: translateX(-50%);
+      border-radius: 0 0 20px 20px;
+      background: #111f25;
+      z-index: 3;
+    }
+
+    .phone-title {
+      text-align: center;
+      font-size: 48px;
+      line-height: .95;
+      font-weight: 900;
+      margin: 26px 0 10px;
+    }
+
+    .phone-subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 26px;
+    }
+
+    .home-card {
+      min-height: 154px;
+      padding: 19px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      border: 1px solid rgba(255,255,255,.52);
+      box-shadow: var(--shadow-card);
+    }
+
+    .home-card.primary { background: linear-gradient(135deg, rgba(20,109,114,.88), rgba(71,126,128,.68)); }
+    .home-card.coral { background: linear-gradient(135deg, rgba(215,123,85,.88), rgba(234,180,116,.68)); }
+
+    .home-card::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      height: 48%;
+      border-radius: 31px 31px 18px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.28), transparent 100%);
+      pointer-events: none;
+    }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 21px;
+      background: rgba(255,255,255,.2);
+      color: #fff;
+      font-size: 27px;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      color: #fff;
+      font-size: 24px;
+      font-weight: 900;
+      margin-bottom: 7px;
+    }
+
+    .card-desc {
+      color: rgba(255,255,255,.9);
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .chat-preview {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(255,255,255,.66);
+      box-shadow: var(--shadow-card);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+    }
+
+    .bubble {
+      width: fit-content;
+      max-width: 86%;
+      padding: 12px 14px;
+      border-radius: 22px;
+      margin-bottom: 10px;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(35, 62, 67, 0.10);
+    }
+
+    .bubble.ai {
+      color: var(--ink);
+      background: rgba(255,255,255,.78);
+      border-bottom-left-radius: 8px;
+    }
+
+    .bubble.me {
+      margin-left: auto;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), #2b8586);
+      border-bottom-right-radius: 8px;
+    }
+
+    .section {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 74px 0;
+    }
+
+    .section-head {
+      max-width: 680px;
+      margin-bottom: 28px;
+    }
+
+    .section-kicker {
+      color: var(--primary-2);
+      font-size: 14px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 54px);
+      line-height: 1.05;
+      color: var(--ink);
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .section-desc {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .feature {
+      min-height: 210px;
+      padding: 22px;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+    }
+
+    .feature-mark {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+      border-radius: 21px;
+      margin-bottom: 18px;
+      color: var(--primary-2);
+      background: var(--primary-soft);
+      font-size: 26px;
+      font-weight: 900;
+    }
+
+    .feature:nth-child(2) .feature-mark {
+      color: #9a5539;
+      background: var(--coral-soft);
+    }
+
+    .feature h3 {
+      margin: 0 0 10px;
+      color: var(--ink);
+      font-size: 21px;
+      font-weight: 900;
+    }
+
+    .feature p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      font-weight: 700;
+    }
+
+    .download-panel {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 28px;
+      align-items: stretch;
+      padding: 28px;
+      border-radius: 32px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: var(--shadow-float);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+    }
+
+    .download-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .store-btn {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.56);
+      box-shadow: 0 8px 20px rgba(35, 62, 67, 0.10);
+    }
+
+    .store-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .store-label {
+      color: var(--subtle);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .store-name {
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .qr-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 270px;
+      padding: 22px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.56);
+      border: 1px solid var(--line);
+    }
+
+    .qr {
+      width: 142px;
+      height: 142px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      padding: 14px;
+      border-radius: 24px;
+      background: #fff;
+      box-shadow: inset 0 0 0 1px var(--line-dark);
+      margin-bottom: 16px;
+    }
+
+    .qr i {
+      display: block;
+      border-radius: 4px;
+      background: var(--ink);
+      opacity: .88;
+    }
+
+    .qr i:nth-child(3n) { opacity: .18; }
+    .qr i:nth-child(5n) { opacity: .42; }
+    .qr-text {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .faq {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .qa {
+      padding: 20px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.46);
+      box-shadow: 0 8px 20px rgba(35, 62, 67, 0.08);
+    }
+
+    .qa h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .qa p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    footer {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      color: var(--subtle);
+      font-size: 14px;
+      font-weight: 800;
+      border-top: 1px solid var(--line-dark);
+    }
+
+    @media (max-width: 900px) {
+      .nav-links a:not(.nav-download) { display: none; }
+      .hero {
+        min-height: auto;
+        padding-top: 64px;
+        grid-template-columns: 1fr;
+      }
+      .phone-shell {
+        justify-self: center;
+      }
+      .feature-grid,
+      .download-panel,
+      .faq {
+        grid-template-columns: 1fr;
+      }
+      .download-options {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .nav {
+        top: 10px;
+        width: calc(100% - 20px);
+      }
+      .brand span { font-size: 18px; }
+      .nav-download { padding: 10px 12px; }
+      .hero,
+      .section,
+      footer {
+        width: calc(100% - 28px);
+      }
+      .hero {
+        padding-top: 48px;
+        gap: 34px;
+      }
+      .hero-copy {
+        font-size: 18px;
+      }
+      .hero-actions .btn {
+        width: 100%;
+      }
+      .phone-shell {
+        transform: scale(.92);
+        transform-origin: top center;
+        margin-bottom: -52px;
+      }
+      .section {
+        padding: 54px 0;
+      }
+      .download-panel {
+        padding: 18px;
+      }
+      footer {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="site">
+    <nav class="nav" aria-label="主导航">
+      <a class="brand" href="#">
+        <img src="../mobile/assets/icon.png" alt="Uni app 图标">
+        <span>Uni</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features">功能</a>
+        <a href="#download">下载</a>
+        <a href="#faq">说明</a>
+        <a class="nav-download" href="#download">获取 App</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">数字分身陪伴应用</div>
+          <h1>Uni</h1>
+          <p class="hero-copy">重要的人，有你陪伴。创建一个带着你的语气和记忆的 AI 分身，让家人输入配对码后就能自然聊天。</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#download">下载 App</a>
+            <a class="btn btn-soft" href="#features">了解功能</a>
+          </div>
+          <p class="hero-note">支持照护者管理分身、分享配对码、查看聊天和补充记忆。</p>
+        </div>
+
+        <div class="phone-shell" aria-label="Uni app 界面预览">
+          <div class="phone">
+            <div class="phone-title">Uni</div>
+            <div class="phone-subtitle">重要的人，有你陪伴</div>
+            <div class="home-card primary">
+              <div class="card-icon">👤</div>
+              <div class="card-title">管理分身</div>
+              <div class="card-desc">创建你的数字分身，补充语气、关系和关怀记忆</div>
+            </div>
+            <div class="home-card coral">
+              <div class="card-icon">💬</div>
+              <div class="card-title">开始聊天</div>
+              <div class="card-desc">输入配对码，和熟悉的声音与语气继续对话</div>
+            </div>
+            <div class="chat-preview">
+              <div class="bubble ai">今天记得多喝水，晚上别太晚睡。</div>
+              <div class="bubble me">好，我想听你说说以前的事。</div>
+              <div class="bubble ai">当然。我还记得你小时候最喜欢听那个夏天的故事。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-head">
+          <div class="section-kicker">核心功能</div>
+          <h2>把陪伴做得轻一点，也近一点</h2>
+          <p class="section-desc">Uni 面向照护场景设计，流程简单：照护者创建分身，聊天对象输入配对码，然后开始对话。</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature">
+            <div class="feature-mark">1</div>
+            <h3>创建数字分身</h3>
+            <p>填写称呼、关系、人设和语气风格，让 AI 更像真实照护者的表达方式。</p>
+          </article>
+          <article class="feature">
+            <div class="feature-mark">2</div>
+            <h3>配对码开始聊天</h3>
+            <p>无需复杂注册，聊天对象输入 6 位配对码，就能进入专属陪伴对话。</p>
+          </article>
+          <article class="feature">
+            <div class="feature-mark">3</div>
+            <h3>持续补充记忆</h3>
+            <p>照护者可以管理记忆、预设问答和未知问题，让后续回复更贴近生活。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="download">
+        <div class="download-panel">
+          <div>
+            <div class="section-kicker">下载 Uni</div>
+            <h2>安装后，用配对码连接你的专属分身</h2>
+            <p class="section-desc">当前按钮可替换为 App Store、Android 安装包或 Expo Go 演示链接。演示阶段也可以直接把二维码换成你的安装地址。</p>
+            <div class="download-options">
+              <a class="store-btn" href="#" aria-label="下载 iOS 版">
+                <span class="store-icon"></span>
+                <span>
+                  <span class="store-label">Download on</span>
+                  <span class="store-name">App Store</span>
+                </span>
+              </a>
+              <a class="store-btn" href="#" aria-label="下载 Android 版">
+                <span class="store-icon">▶</span>
+                <span>
+                  <span class="store-label">Get it for</span>
+                  <span class="store-name">Android</span>
+                </span>
+              </a>
+              <a class="store-btn" href="#" aria-label="使用 Expo Go 体验">
+                <span class="store-icon">E</span>
+                <span>
+                  <span class="store-label">Preview with</span>
+                  <span class="store-name">Expo Go</span>
+                </span>
+              </a>
+              <a class="store-btn" href="../mobile" aria-label="查看移动端项目">
+                <span class="store-icon">⌁</span>
+                <span>
+                  <span class="store-label">Local source</span>
+                  <span class="store-name">移动端项目</span>
+                </span>
+              </a>
+            </div>
+          </div>
+          <div class="qr-card">
+            <div class="qr" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="qr-text">将这里替换成正式下载二维码，方便家人扫码安装。</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="section-head">
+          <div class="section-kicker">简要说明</div>
+          <h2>适合演示，也方便后续上线</h2>
+        </div>
+        <div class="faq">
+          <article class="qa">
+            <h3>谁来创建分身？</h3>
+            <p>照护者或家人创建分身，填写语气、人设和常见关怀记忆。</p>
+          </article>
+          <article class="qa">
+            <h3>聊天对象需要注册吗？</h3>
+            <p>不需要。输入照护者分享的 6 位配对码即可开始聊天。</p>
+          </article>
+          <article class="qa">
+            <h3>下载链接在哪里替换？</h3>
+            <p>打开本页 HTML，搜索下载区的 <code>href="#"</code>，替换成正式地址即可。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>© 2026 Uni. 重要的人，有你陪伴。</div>
+      <a href="#download">下载 App</a>
+    </footer>
+  </div>
+</body>
+</html>
