@@ -15,6 +15,24 @@ interface Message {
   id: string;
   role: 'user' | 'ai';
   content: string;
+  createdAt?: string;
+}
+
+function formatTime(dateStr?: string): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return '刚刚';
+  if (diffMins < 60) return `${diffMins}分钟前`;
+  if (diffHours < 24) return `${diffHours}小时前`;
+  if (diffDays < 7) return `${diffDays}天前`;
+
+  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
 }
 
 export default function ChatScreen() {
@@ -74,6 +92,7 @@ export default function ChatScreen() {
         id: `msg-${i}`,
         role: (m.role === 'creator' || m.role === 'ai') ? 'ai' : 'user',
         content: m.content,
+        createdAt: m.created_at,
       }));
       setMessages(formatted);
     } catch (err) {
@@ -91,6 +110,7 @@ export default function ChatScreen() {
       id: nextMsgId(),
       role,
       content: text,
+      createdAt: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
 
@@ -104,6 +124,7 @@ export default function ChatScreen() {
           id: nextMsgId(),
           role: 'ai',
           content: result.reply,
+          createdAt: new Date().toISOString(),
         };
         setMessages(prev => [...prev, aiMsg]);
       }
@@ -112,6 +133,7 @@ export default function ChatScreen() {
         id: nextMsgId(),
         role: 'ai',
         content: err?.message || '发送失败，请稍后重试',
+        createdAt: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
@@ -119,8 +141,11 @@ export default function ChatScreen() {
     }
   };
 
-  const renderMessage = useCallback(({ item }: { item: Message }) => {
+  const renderMessage = useCallback(({ item, index }: { item: Message; index: number }) => {
     const isUser = item.role === 'user';
+    const prevMessage = index > 0 ? messages[index - 1] : null;
+    const showTime = !prevMessage || !prevMessage.createdAt ||
+      (new Date(item.createdAt || '').getTime() - new Date(prevMessage.createdAt).getTime()) > 300000;
 
     let label = '';
     if (isUser) {
@@ -130,27 +155,32 @@ export default function ChatScreen() {
     }
 
     return (
-      <View style={[styles.messageRow, isUser && styles.userRow]}>
-        {isUser ? (
-          <View style={styles.userBubbleWrapper}>
-            <LinearGradient
-              colors={gradients.bubble as unknown as [string, string]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.userBubbleGradient}
-            >
-              <Text style={styles.userMessageText}>{item.content}</Text>
-            </LinearGradient>
-          </View>
-        ) : (
-          <View style={styles.aiBubbleWrapper}>
-            <Text style={styles.roleLabel}>{label}</Text>
-            <Text style={styles.aiMessageText}>{item.content}</Text>
-          </View>
+      <View>
+        {showTime && item.createdAt && (
+          <Text style={styles.timeSeparator}>{formatTime(item.createdAt)}</Text>
         )}
+        <View style={[styles.messageRow, isUser && styles.userRow]}>
+          {isUser ? (
+            <View style={styles.userBubbleWrapper}>
+              <LinearGradient
+                colors={gradients.bubble as unknown as [string, string]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.userBubbleGradient}
+              >
+                <Text style={styles.userMessageText}>{item.content}</Text>
+              </LinearGradient>
+            </View>
+          ) : (
+            <View style={styles.aiBubbleWrapper}>
+              <Text style={styles.roleLabel}>{label}</Text>
+              <Text style={styles.aiMessageText}>{item.content}</Text>
+            </View>
+          )}
+        </View>
       </View>
     );
-  }, [isCreatorMode, targetName, aiLabel]);
+  }, [isCreatorMode, targetName, aiLabel, messages]);
 
   return (
     <>
@@ -261,6 +291,17 @@ const styles = StyleSheet.create({
   messageList: {
     padding: 16,
     gap: 12,
+  },
+  timeSeparator: {
+    alignSelf: 'center',
+    fontSize: 12,
+    color: colors.ink2,
+    backgroundColor: colors.surfaceSoft,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginVertical: 8,
+    overflow: 'hidden',
   },
 
   emptyState: {

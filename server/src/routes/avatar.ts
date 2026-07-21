@@ -311,7 +311,10 @@ router.post('/:id/regenerate-code', authenticate, async (req: AuthRequest, res: 
     for (let i = 0; i < 5; i++) {
       const code = generatePairingCode();
       const conflictCheck = await query(
-        'UPDATE avatars SET pairing_code = $1 WHERE id = $2 AND NOT EXISTS (SELECT 1 FROM avatars WHERE pairing_code = $1 AND id <> $2) RETURNING pairing_code',
+        `UPDATE avatars
+         SET pairing_code = $1, pairing_code_expires_at = NOW() + INTERVAL '7 days'
+         WHERE id = $2 AND NOT EXISTS (SELECT 1 FROM avatars WHERE pairing_code = $1 AND id <> $2)
+         RETURNING pairing_code`,
         [code, avatarId]
       );
       if (conflictCheck.rows.length > 0) {

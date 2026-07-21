@@ -78,7 +78,7 @@ export default function MemoriesScreen() {
       setNewContent('');
       loadMemories();
     } catch (err: any) {
-      Alert.alert('错误', err.message);
+      Alert.alert('错误', err.message || '保存失败');
     } finally {
       setSaving(false);
     }
@@ -95,7 +95,7 @@ export default function MemoriesScreen() {
             await memoryApi.delete(Number(avatarId), memory.id);
             setMemories(prev => prev.filter(m => m.id !== memory.id));
           } catch (err: any) {
-            Alert.alert('错误', err.message);
+            Alert.alert('错误', err.message || '删除失败');
           }
         },
       },
@@ -124,7 +124,7 @@ export default function MemoriesScreen() {
       setEditModal({ visible: false, memory: null });
       loadMemories();
     } catch (err: any) {
-      Alert.alert('错误', err.message);
+      Alert.alert('错误', err.message || '保存失败');
     } finally {
       setSaving(false);
     }

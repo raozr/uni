@@ -14,31 +14,54 @@ export default function UnknownQueriesScreen() {
   const { avatarId } = useLocalSearchParams<{ avatarId: string }>();
   const [queries, setQueries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showAnswered, setShowAnswered] = useState(false);
   const [respondingId, setRespondingId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const [responding, setResponding] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 20;
 
   const cancelledRef = useRef(false);
   const reqIdRef = useRef(0);
 
   useEffect(() => {
     cancelledRef.current = false;
+    setPage(1);
+    setHasMore(true);
     const reqId = ++reqIdRef.current;
-    loadQueries(reqId).catch(() => {});
+    loadQueries(reqId, 1).catch(() => {});
     return () => { cancelledRef.current = true; };
   }, [showAnswered]);
 
-  const loadQueries = async (reqId: number) => {
+  const loadQueries = async (reqId: number, pageNum: number) => {
     try {
       const result = await unknownApi.getList(showAnswered);
       if (cancelledRef.current || reqId !== reqIdRef.current) return;
-      setQueries(result.queries);
+      const allQueries = result.queries || [];
+      if (pageNum === 1) {
+        setQueries(allQueries.slice(0, PAGE_SIZE));
+      } else {
+        setQueries(prev => [...prev, ...allQueries.slice((pageNum - 1) * PAGE_SIZE, pageNum * PAGE_SIZE)]);
+      }
+      setHasMore(allQueries.length > pageNum * PAGE_SIZE);
+      setPage(pageNum);
     } catch {
       if (!cancelledRef.current && reqId === reqIdRef.current) Alert.alert('错误', '获取未知问题失败');
     } finally {
-      if (!cancelledRef.current && reqId === reqIdRef.current) setLoading(false);
+      if (!cancelledRef.current && reqId === reqIdRef.current) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
+  };
+
+  const loadMore = () => {
+    if (!hasMore || loadingMore || loading) return;
+    setLoadingMore(true);
+    const reqId = reqIdRef.current;
+    loadQueries(reqId, page + 1).catch(() => {});
   };
 
   const handleStartResponding = (id: number) => {
@@ -58,9 +81,9 @@ export default function UnknownQueriesScreen() {
       Alert.alert('成功', '回答已保存，AI 下次会知道怎么回答了');
       setRespondingId(null);
       setReplyText('');
-      loadQueries(reqIdRef.current);
+      loadQueries(reqIdRef.current, 1);
     } catch (err: any) {
-      Alert.alert('错误', err.message);
+      Alert.alert('错误', err.message || '保存失败，请稍后重试');
     } finally {
       setResponding(false);
     }
@@ -183,6 +206,13 @@ export default function UnknownQueriesScreen() {
             keyExtractor={item => item.id.toString()}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.3}
+            ListFooterComponent={
+              loadingMore ? (
+                <ActivityIndicator size="small" color={colors.primary} style={styles.loadingMore} />
+              ) : null
+            }
           />
         )}
       </SafeAreaView>
@@ -201,6 +231,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingMore: {
+    paddingVertical: 16,
   },
 
   filterRow: {

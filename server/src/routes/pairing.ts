@@ -24,7 +24,7 @@ router.post(
 
     try {
       const result = await query(
-        'SELECT id, name, target_name FROM avatars WHERE pairing_code = $1',
+        'SELECT id, name, target_name, pairing_code_expires_at FROM avatars WHERE pairing_code = $1',
         [code]
       );
 
@@ -34,6 +34,11 @@ router.post(
       }
 
       const avatar = result.rows[0];
+
+      if (avatar.pairing_code_expires_at && new Date(avatar.pairing_code_expires_at) < new Date()) {
+        console.log(`Pairing code expired from ${req.ip}: code=***${code.slice(-2)}`);
+        return res.status(401).json({ error: '配对码已过期，请让创建者重新生成' });
+      }
       const conversationId = await createConversation(avatar.id, 'pairing');
 
       const pairing_token = jwt.sign(

@@ -234,7 +234,7 @@ export async function handleChatMessage(
   const avatar = avatarResult.rows[0];
 
   const systemPrompt = await buildSystemPrompt(avatar);
-  const history = await getRecentHistory(avatarId, conversationId, true);
+  const history = await getRecentHistory(avatarId, conversationId, false);
 
   try {
     const reply = await askDeepSeek(systemPrompt, history, content);

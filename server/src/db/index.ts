@@ -58,8 +58,9 @@ export async function initializeDatabase() {
       name VARCHAR(100) NOT NULL,
       target_name VARCHAR(100) NOT NULL,
       persona TEXT DEFAULT '',
-      ai_tone VARCHAR(500) DEFAULT '语气亲切、温柔，像家人一样聊天',
+      ai_tone TEXT DEFAULT '语气亲切、温柔，像家人一样聊天',
       pairing_code VARCHAR(6) UNIQUE NOT NULL,
+      pairing_code_expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '7 days',
       age INTEGER,
       occupation VARCHAR(100),
       relationship VARCHAR(50),
@@ -76,6 +77,7 @@ export async function initializeDatabase() {
   await query(`ALTER TABLE avatars ADD COLUMN IF NOT EXISTS personality_traits JSONB`);
   await query(`ALTER TABLE avatars ADD COLUMN IF NOT EXISTS interests JSONB`);
   await query(`ALTER TABLE avatars ADD COLUMN IF NOT EXISTS dialogue_preferences JSONB`);
+  await query(`ALTER TABLE avatars ADD COLUMN IF NOT EXISTS pairing_code_expires_at TIMESTAMP DEFAULT NOW() + INTERVAL '7 days'`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS preset_answers (
@@ -114,6 +116,12 @@ export async function initializeDatabase() {
   await query(`ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS conversation_id INTEGER REFERENCES conversations(id) ON DELETE SET NULL`);
   await query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS last_memory_extracted_message_id INTEGER`);
   await query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS device_token TEXT`);
+
+  await query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_conversations_legacy_unique
+    ON conversations (avatar_id)
+    WHERE access_type = 'legacy'
+  `);
 
   await query(`
     CREATE TABLE IF NOT EXISTS unknown_queries (

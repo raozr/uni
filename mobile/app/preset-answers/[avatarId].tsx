@@ -60,7 +60,7 @@ export default function PresetAnswersScreen() {
       setAnswer('');
       loadAnswers();
     } catch (err: any) {
-      Alert.alert('错误', err.message);
+      Alert.alert('错误', err.message || '保存失败');
     } finally {
       setSaving(false);
     }
@@ -77,7 +77,7 @@ export default function PresetAnswersScreen() {
             await avatarApi.deletePresetAnswer(Number(avatarId), id);
             loadAnswers();
           } catch (err: any) {
-            Alert.alert('错误', err.message);
+            Alert.alert('错误', err.message || '删除失败');
           }
         },
       },
@@ -157,6 +157,7 @@ export default function PresetAnswersScreen() {
                 value={keywords}
                 onChangeText={setKeywords}
               />
+              <Text style={styles.inputHint}>多个关键词用英文逗号分隔，匹配到任意关键词即触发回答</Text>
               <TextInput
                 style={styles.input}
                 placeholder="常见问题"
@@ -320,6 +321,13 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 80,
+  },
+  inputHint: {
+    fontSize: 12,
+    color: colors.subtle,
+    marginTop: 4,
+    marginBottom: 8,
+    paddingHorizontal: 4,
   },
   saveButtonWrapper: {
     borderRadius: radii.pill,
