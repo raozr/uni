@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Alert, ActivityIndicator,
@@ -19,18 +19,25 @@ export default function UnknownQueriesScreen() {
   const [replyText, setReplyText] = useState('');
   const [responding, setResponding] = useState(false);
 
+  const cancelledRef = useRef(false);
+  const reqIdRef = useRef(0);
+
   useEffect(() => {
-    loadQueries();
+    cancelledRef.current = false;
+    const reqId = ++reqIdRef.current;
+    loadQueries(reqId).catch(() => {});
+    return () => { cancelledRef.current = true; };
   }, [showAnswered]);
 
-  const loadQueries = async () => {
+  const loadQueries = async (reqId: number) => {
     try {
       const result = await unknownApi.getList(showAnswered);
+      if (cancelledRef.current || reqId !== reqIdRef.current) return;
       setQueries(result.queries);
     } catch {
-      Alert.alert('错误', '获取未知问题失败');
+      if (!cancelledRef.current && reqId === reqIdRef.current) Alert.alert('错误', '获取未知问题失败');
     } finally {
-      setLoading(false);
+      if (!cancelledRef.current && reqId === reqIdRef.current) setLoading(false);
     }
   };
 
@@ -51,7 +58,7 @@ export default function UnknownQueriesScreen() {
       Alert.alert('成功', '回答已保存，AI 下次会知道怎么回答了');
       setRespondingId(null);
       setReplyText('');
-      loadQueries();
+      loadQueries(reqIdRef.current);
     } catch (err: any) {
       Alert.alert('错误', err.message);
     } finally {

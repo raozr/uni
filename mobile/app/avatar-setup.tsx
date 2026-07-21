@@ -125,13 +125,20 @@ export default function AvatarSetupScreen() {
     topic_depth: 'normal',
   });
 
+  const cancelledRef = useRef(false);
+
   useEffect(() => {
-    if (isEdit) loadAvatar();
+    cancelledRef.current = false;
+    if (isEdit) {
+      loadAvatar().catch(() => {});
+    }
+    return () => { cancelledRef.current = true; };
   }, []);
 
   const loadAvatar = async () => {
     try {
       const result = await avatarApi.getById(Number(avatarId));
+      if (cancelledRef.current) return;
       const av = result.avatar;
       setName(av.name || '');
       setTargetName(av.target_name || '');

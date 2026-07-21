@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView,
@@ -37,18 +37,23 @@ export default function MemoriesScreen() {
   const [editKey, setEditKey] = useState('');
   const [editContent, setEditContent] = useState('');
 
+  const cancelledRef = useRef(false);
+
   useEffect(() => {
-    loadMemories();
+    cancelledRef.current = false;
+    loadMemories().catch(() => {});
+    return () => { cancelledRef.current = true; };
   }, []);
 
   const loadMemories = async () => {
     try {
       const result = await memoryApi.getList(Number(avatarId));
+      if (cancelledRef.current) return;
       setMemories(result.memories);
     } catch {
-      Alert.alert('错误', '获取记忆列表失败');
+      if (!cancelledRef.current) Alert.alert('错误', '获取记忆列表失败');
     } finally {
-      setLoading(false);
+      if (!cancelledRef.current) setLoading(false);
     }
   };
 

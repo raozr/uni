@@ -107,7 +107,15 @@ router.post(
         5
       );
 
-      res.status(201).json({ avatar });
+      const fullAvatar = await query(
+        `SELECT a.*,
+          (SELECT COUNT(*) FROM preset_answers WHERE avatar_id = a.id) as preset_count,
+          (SELECT COUNT(*) FROM unknown_queries WHERE avatar_id = a.id AND answered = false) as unanswered_count
+         FROM avatars a WHERE a.id = $1`,
+        [avatar.id]
+      );
+
+      res.status(201).json({ avatar: fullAvatar.rows[0] });
     } catch (err) {
       console.error('Create avatar error:', err);
       res.status(500).json({ error: err instanceof Error ? err.message : '创建头像配置失败' });
@@ -249,7 +257,15 @@ router.put(
         values
       );
 
-      res.json({ avatar: result.rows[0] });
+      const fullAvatar = await query(
+        `SELECT a.*,
+          (SELECT COUNT(*) FROM preset_answers WHERE avatar_id = a.id) as preset_count,
+          (SELECT COUNT(*) FROM unknown_queries WHERE avatar_id = a.id AND answered = false) as unanswered_count
+         FROM avatars a WHERE a.id = $1`,
+        [avatarId]
+      );
+
+      res.json({ avatar: fullAvatar.rows[0] });
     } catch (err) {
       console.error('Update avatar error:', err);
       res.status(500).json({ error: '更新头像配置失败' });

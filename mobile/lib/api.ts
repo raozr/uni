@@ -61,7 +61,12 @@ async function request<T>(
   }
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : {};
+  let data: any;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { error: '响应解析失败' };
+  }
 
   if (!response.ok) {
     if (response.status === 401 && authToken) {

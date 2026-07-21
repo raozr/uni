@@ -55,6 +55,15 @@ export default function HomeScreen() {
     );
   }
 
+  const [navigating, setNavigating] = useState(false);
+
+  const handleNavigate = (path: string | { pathname: string; params?: Record<string, string | undefined> }) => {
+    if (navigating) return;
+    setNavigating(true);
+    router.push(path as any);
+    setTimeout(() => setNavigating(false), 500);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -63,11 +72,11 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.cardsContainer}>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => {
+        <TouchableOpacity activeOpacity={0.85} disabled={navigating} onPress={() => {
           if (user) {
-            router.push('/dashboard');
+            handleNavigate('/dashboard');
           } else {
-            router.push('/creator-login');
+            handleNavigate('/creator-login');
           }
         }}>
           <LinearGradient
@@ -94,9 +103,9 @@ export default function HomeScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.85} onPress={() => {
+        <TouchableOpacity activeOpacity={0.85} disabled={navigating} onPress={() => {
           if (pairedAvatar) {
-            router.push({
+            handleNavigate({
               pathname: '/chat/[avatarId]',
               params: {
                 avatarId: String(pairedAvatar.avatarId),
@@ -106,7 +115,7 @@ export default function HomeScreen() {
               },
             });
           } else {
-            router.push('/pairing');
+            handleNavigate('/pairing');
           }
         }}>
           <LinearGradient

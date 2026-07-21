@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   StyleSheet, Alert, ActivityIndicator,
@@ -21,18 +21,23 @@ export default function PresetAnswersScreen() {
   const [answer, setAnswer] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const cancelledRef = useRef(false);
+
   useEffect(() => {
-    loadAnswers();
+    cancelledRef.current = false;
+    loadAnswers().catch(() => {});
+    return () => { cancelledRef.current = true; };
   }, []);
 
   const loadAnswers = async () => {
     try {
       const result = await avatarApi.getPresetAnswers(Number(avatarId));
+      if (cancelledRef.current) return;
       setAnswers(result.preset_answers);
     } catch {
-      Alert.alert('错误', '获取预设问答失败');
+      if (!cancelledRef.current) Alert.alert('错误', '获取预设问答失败');
     } finally {
-      setLoading(false);
+      if (!cancelledRef.current) setLoading(false);
     }
   };
 

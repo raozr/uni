@@ -22,7 +22,7 @@ router.get('/:avatarId/memories', authenticate, async (req: AuthRequest, res: Re
     const userId = req.user!.id;
 
     if (!(await verifyAvatarOwnership(avatarId, userId))) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: '无权操作该分身' });
     }
 
     const result = await query(
@@ -33,7 +33,7 @@ router.get('/:avatarId/memories', authenticate, async (req: AuthRequest, res: Re
     res.json({ memories: result.rows });
   } catch (err) {
     console.error('Get memories error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: '获取记忆失败' });
   }
 });
 
@@ -73,7 +73,7 @@ router.post('/:avatarId/memories', authenticate, async (req: AuthRequest, res: R
     res.status(201).json({ memory: result.rows[0] });
   } catch (err) {
     console.error('Create memory error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: '创建记忆失败' });
   }
 });
 
@@ -88,15 +88,15 @@ router.put('/:avatarId/memories/:memoryId', authenticate, async (req: AuthReques
     const { key, content } = req.body;
 
     if (!(await verifyAvatarOwnership(avatarId, userId))) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: '无权操作该分身' });
     }
 
     if (key && key.length > 100) {
-      return res.status(400).json({ error: 'key must be 100 characters or less' });
+      return res.status(400).json({ error: '记忆标题不能超过 100 字符' });
     }
 
     if (content && content.length > 2000) {
-      return res.status(400).json({ error: 'content must be 2000 characters or less' });
+      return res.status(400).json({ error: '记忆内容不能超过 2000 字符' });
     }
 
     const updates: string[] = [];
@@ -116,7 +116,7 @@ router.put('/:avatarId/memories/:memoryId', authenticate, async (req: AuthReques
     }
 
     if (updates.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
+      return res.status(400).json({ error: '没有需要更新的字段' });
     }
 
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
@@ -128,13 +128,13 @@ router.put('/:avatarId/memories/:memoryId', authenticate, async (req: AuthReques
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Memory not found' });
+      return res.status(404).json({ error: '记忆不存在' });
     }
 
     res.json({ memory: result.rows[0] });
   } catch (err) {
     console.error('Update memory error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: '更新记忆失败' });
   }
 });
 
@@ -148,7 +148,7 @@ router.delete('/:avatarId/memories/:memoryId', authenticate, async (req: AuthReq
     const userId = req.user!.id;
 
     if (!(await verifyAvatarOwnership(avatarId, userId))) {
-      return res.status(403).json({ error: 'Access denied' });
+      return res.status(403).json({ error: '无权操作该分身' });
     }
 
     const result = await query(
@@ -157,13 +157,13 @@ router.delete('/:avatarId/memories/:memoryId', authenticate, async (req: AuthReq
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Memory not found' });
+      return res.status(404).json({ error: '记忆不存在' });
     }
 
-    res.json({ success: true });
+    res.json({ message: '已删除' });
   } catch (err) {
     console.error('Delete memory error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: '删除记忆失败' });
   }
 });
 

@@ -276,8 +276,3 @@ export function isUncertainReply(reply: string): boolean {
   const lowerReply = reply.toLowerCase();
   return uncertainIndicators.some(indicator => lowerReply.includes(indicator.toLowerCase()));
 }
-
-async function getTargetName(avatarId: number): Promise<string> {
-  const result = await query('SELECT target_name FROM avatars WHERE id = $1', [avatarId]);
-  return result.rows[0]?.target_name || '创建者';
-}

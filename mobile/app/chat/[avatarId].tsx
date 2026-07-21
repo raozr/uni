@@ -41,11 +41,15 @@ export default function ChatScreen() {
     ? `同「${targetName}」聊天`
     : `同「${aiLabel}」聊天`;
 
+  const cancelledRef = useRef(false);
+
   useEffect(() => {
-    loadHistory();
+    cancelledRef.current = false;
+    loadHistory().catch(() => {});
     if (!isCreatorMode) {
       AsyncStorage.setItem('last_identity', 'chat');
     }
+    return () => { cancelledRef.current = true; };
   }, []);
 
   const handleExitChat = () => {
@@ -65,6 +69,7 @@ export default function ChatScreen() {
   const loadHistory = async () => {
     try {
       const result = await chatApi.getHistory(Number(avatarId), 50, activeConversationId);
+      if (cancelledRef.current) return;
       const formatted: Message[] = result.messages.map((m: any, i: number) => ({
         id: `msg-${i}`,
         role: (m.role === 'creator' || m.role === 'ai') ? 'ai' : 'user',

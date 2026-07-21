@@ -8,16 +8,25 @@ const router = Router();
 
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   const userId = req.user!.id;
-  const answered = req.query.answered === 'true';
+  const answeredParam = req.query.answered as string | undefined;
 
   try {
+    let whereClause = 'a.creator_id = $1';
+    const params: any[] = [userId];
+
+    if (answeredParam !== 'all') {
+      const answered = answeredParam === 'true';
+      whereClause += ' AND uq.answered = $2';
+      params.push(answered);
+    }
+
     const result = await query(
       `SELECT uq.*, a.target_name
        FROM unknown_queries uq
        JOIN avatars a ON a.id = uq.avatar_id
-       WHERE a.creator_id = $1 AND uq.answered = $2
+       WHERE ${whereClause}
        ORDER BY uq.created_at DESC`,
-      [userId, answered]
+      params
     );
 
     res.json({ queries: result.rows });
