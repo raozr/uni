@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-const DEV_HOST = process.env.EXPO_PUBLIC_DEV_HOST || '192.168.4.166';
+const DEV_HOST = process.env.EXPO_PUBLIC_DEV_HOST || 'localhost';
 const DEV_PORT = process.env.EXPO_PUBLIC_DEV_PORT || '3000';
 
 function getApiBase(): string {
@@ -15,7 +15,11 @@ function getApiBase(): string {
     }
     return `http://${DEV_HOST}:${DEV_PORT}/api`;
   }
-  return process.env.EXPO_PUBLIC_API_URL || `http://${DEV_HOST}:${DEV_PORT}/api`;
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (!apiUrl) {
+    throw new Error('EXPO_PUBLIC_API_URL must be set for production builds');
+  }
+  return apiUrl;
 }
 
 export const API_BASE = getApiBase();

@@ -102,6 +102,7 @@ export default function HomeScreen() {
                 avatarId: String(pairedAvatar.avatarId),
                 avatarName: pairedAvatar.avatarName,
                 targetName: pairedAvatar.targetName,
+                conversationId: pairedAvatar.conversationId ? String(pairedAvatar.conversationId) : undefined,
               },
             });
           } else {

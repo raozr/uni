@@ -3,12 +3,14 @@ import bcrypt from 'bcryptjs';
 import { body, validationResult } from 'express-validator';
 import { query } from '../db';
 import { authenticate, generateToken, AuthRequest } from '../middleware/auth';
+import { rateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
-// 管理员注册
+// 管理员注册（限流：10次/分钟，防批量注册）
 router.post(
   '/register',
+  rateLimiter(60 * 1000, 10),
   [
     body('email').isEmail().withMessage('请输入有效的邮箱'),
     body('password').isLength({ min: 6 }).withMessage('密码至少6位'),
@@ -48,9 +50,10 @@ router.post(
   }
 );
 
-// 管理员登录
+// 管理员登录（限流：5次/分钟，防暴力撞库）
 router.post(
   '/login',
+  rateLimiter(60 * 1000, 5),
   [
     body('email').isEmail().withMessage('请输入有效的邮箱'),
     body('password').notEmpty().withMessage('请输入密码'),

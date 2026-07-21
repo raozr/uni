@@ -2,10 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 
 describe('rateLimiter middleware', () => {
   let rateLimiter: (windowMs?: number, maxRequests?: number) => any;
+  let resetRateLimiterForTests: () => void;
 
   beforeEach(() => {
     jest.resetModules();
-    rateLimiter = require('../middleware/rateLimiter').rateLimiter;
+    const mod = require('../middleware/rateLimiter');
+    rateLimiter = mod.rateLimiter;
+    resetRateLimiterForTests = mod.resetRateLimiterForTests;
+  });
+
+  afterEach(() => {
+    resetRateLimiterForTests();
   });
 
   function mockReq(path: string, ip = '127.0.0.1'): Request {
@@ -44,7 +51,7 @@ describe('rateLimiter middleware', () => {
 
     expect(res.status).toHaveBeenCalledWith(429);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.stringContaining('Too many') })
+      expect.objectContaining({ error: expect.stringContaining('请求过于频繁') })
     );
   });
 
@@ -69,5 +76,18 @@ describe('rateLimiter middleware', () => {
     limiter(mockReq('/api/path2'), res, next);
 
     expect(next).toHaveBeenCalledTimes(2);
+  });
+
+  it('应导出测试清理函数避免跨用例状态残留', () => {
+    const limiter = rateLimiter(60000, 1);
+    const res = mockRes();
+    const next = mockNext();
+
+    limiter(mockReq('/api/reset'), res, next);
+    resetRateLimiterForTests();
+    limiter(mockReq('/api/reset'), res, next);
+
+    expect(next).toHaveBeenCalledTimes(2);
+    expect(res.status).not.toHaveBeenCalled();
   });
 });

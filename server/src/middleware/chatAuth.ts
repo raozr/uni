@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { query } from '../db';
 import { JWT_SECRET } from '../config';
+import { parsePositiveInt } from '../utils/params';
 
 export async function chatAuthenticate(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -15,7 +16,10 @@ export async function chatAuthenticate(req: Request, res: Response, next: NextFu
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
     if (decoded.type === 'pairing') {
-      const avatarId = parseInt(req.params.avatar_id || req.body.avatar_id);
+      const avatarId = parsePositiveInt((req.params.avatar_id || req.body.avatar_id)?.toString());
+      if (!avatarId) {
+        return res.status(400).json({ error: '无效的头像配置' });
+      }
       if (decoded.avatarId !== avatarId) {
         return res.status(403).json({ error: '无权访问该分身' });
       }
@@ -25,7 +29,10 @@ export async function chatAuthenticate(req: Request, res: Response, next: NextFu
     }
 
     if (decoded.id) {
-      const avatarId = parseInt(req.params.avatar_id || req.body.avatar_id);
+      const avatarId = parsePositiveInt((req.params.avatar_id || req.body.avatar_id)?.toString());
+      if (!avatarId) {
+        return res.status(400).json({ error: '无效的头像配置' });
+      }
       const result = await query('SELECT * FROM avatars WHERE id = $1 AND creator_id = $2', [avatarId, decoded.id]);
       if (result.rows.length === 0) {
         return res.status(403).json({ error: '无权访问该分身' });

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import { query } from '../db';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { parsePositiveInt } from '../utils/params';
 
 const router = Router();
 
@@ -40,7 +41,7 @@ function isValidDialoguePreferences(val: unknown): boolean {
   return true;
 }
 
-function generatePairingCode(): string {
+export function generatePairingCode(): string {
   return crypto.randomInt(0, 1000000).toString().padStart(6, '0');
 }
 
@@ -133,7 +134,10 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
 });
 
 router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
-  const avatarId = parseInt(req.params.id);
+  const avatarId = parsePositiveInt(req.params.id);
+  if (!avatarId) {
+    return res.status(400).json({ error: '无效的头像配置' });
+  }
   const creatorId = req.user!.id;
 
   try {
@@ -177,7 +181,10 @@ router.put(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const avatarId = parseInt(req.params.id);
+    const avatarId = parsePositiveInt(req.params.id);
+    if (!avatarId) {
+      return res.status(400).json({ error: '无效的头像配置' });
+    }
     const { name, target_name, persona, ai_tone, age, occupation, relationship, personality_traits, interests, dialogue_preferences } = req.body;
     const creatorId = req.user!.id;
 
@@ -251,7 +258,10 @@ router.put(
 );
 
 router.delete('/:id', authenticate, async (req: AuthRequest, res: Response) => {
-  const avatarId = parseInt(req.params.id);
+  const avatarId = parsePositiveInt(req.params.id);
+  if (!avatarId) {
+    return res.status(400).json({ error: '无效的头像配置' });
+  }
   const creatorId = req.user!.id;
 
   try {
@@ -269,7 +279,10 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res: Response) => {
 });
 
 router.post('/:id/regenerate-code', authenticate, async (req: AuthRequest, res: Response) => {
-  const avatarId = parseInt(req.params.id);
+  const avatarId = parsePositiveInt(req.params.id);
+  if (!avatarId) {
+    return res.status(400).json({ error: '无效的头像配置' });
+  }
   const creatorId = req.user!.id;
 
   try {
@@ -303,7 +316,10 @@ router.post('/:id/regenerate-code', authenticate, async (req: AuthRequest, res: 
 });
 
 router.get('/:id/preset-answers', authenticate, async (req: AuthRequest, res: Response) => {
-  const avatarId = parseInt(req.params.id);
+  const avatarId = parsePositiveInt(req.params.id);
+  if (!avatarId) {
+    return res.status(400).json({ error: '无效的头像配置' });
+  }
   const creatorId = req.user!.id;
 
   try {
@@ -338,7 +354,10 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const avatarId = parseInt(req.params.id);
+    const avatarId = parsePositiveInt(req.params.id);
+    if (!avatarId) {
+      return res.status(400).json({ error: '无效的头像配置' });
+    }
     const creatorId = req.user!.id;
     const { keywords, question, answer } = req.body;
 
@@ -362,8 +381,11 @@ router.post(
 );
 
 router.delete('/:pid/preset-answers/:aid', authenticate, async (req: AuthRequest, res: Response) => {
-  const avatarId = parseInt(req.params.pid);
-  const answerId = parseInt(req.params.aid);
+  const avatarId = parsePositiveInt(req.params.pid);
+  const answerId = parsePositiveInt(req.params.aid);
+  if (!avatarId || !answerId) {
+    return res.status(400).json({ error: '无效的预设问答' });
+  }
   const creatorId = req.user!.id;
 
   try {

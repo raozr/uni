@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { query } from '../db';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { parsePositiveInt } from '../utils/params';
 
 const router = Router();
 
@@ -14,7 +15,10 @@ async function verifyAvatarOwnership(avatarId: number, userId: number) {
 
 router.get('/:avatarId/memories', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const avatarId = parseInt(req.params.avatarId);
+    const avatarId = parsePositiveInt(req.params.avatarId);
+    if (!avatarId) {
+      return res.status(400).json({ error: '无效的分身' });
+    }
     const userId = req.user!.id;
 
     if (!(await verifyAvatarOwnership(avatarId, userId))) {
@@ -35,7 +39,10 @@ router.get('/:avatarId/memories', authenticate, async (req: AuthRequest, res: Re
 
 router.post('/:avatarId/memories', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const avatarId = parseInt(req.params.avatarId);
+    const avatarId = parsePositiveInt(req.params.avatarId);
+    if (!avatarId) {
+      return res.status(400).json({ error: '无效的分身' });
+    }
     const userId = req.user!.id;
     const { key, content } = req.body;
 
@@ -72,8 +79,11 @@ router.post('/:avatarId/memories', authenticate, async (req: AuthRequest, res: R
 
 router.put('/:avatarId/memories/:memoryId', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const avatarId = parseInt(req.params.avatarId);
-    const memoryId = parseInt(req.params.memoryId);
+    const avatarId = parsePositiveInt(req.params.avatarId);
+    const memoryId = parsePositiveInt(req.params.memoryId);
+    if (!avatarId || !memoryId) {
+      return res.status(400).json({ error: '无效的记忆' });
+    }
     const userId = req.user!.id;
     const { key, content } = req.body;
 
@@ -126,8 +136,11 @@ router.put('/:avatarId/memories/:memoryId', authenticate, async (req: AuthReques
 
 router.delete('/:avatarId/memories/:memoryId', authenticate, async (req: AuthRequest, res: Response) => {
   try {
-    const avatarId = parseInt(req.params.avatarId);
-    const memoryId = parseInt(req.params.memoryId);
+    const avatarId = parsePositiveInt(req.params.avatarId);
+    const memoryId = parsePositiveInt(req.params.memoryId);
+    if (!avatarId || !memoryId) {
+      return res.status(400).json({ error: '无效的记忆' });
+    }
     const userId = req.user!.id;
 
     if (!(await verifyAvatarOwnership(avatarId, userId))) {

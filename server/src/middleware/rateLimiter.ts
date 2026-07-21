@@ -11,7 +11,7 @@ const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS = 5;
 
 function getClientIp(req: Request): string {
-  return (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip || 'unknown';
+  return req.ip || 'unknown';
 }
 
 export function rateLimiter(windowMs: number = WINDOW_MS, maxRequests: number = MAX_REQUESTS) {
@@ -32,7 +32,7 @@ export function rateLimiter(windowMs: number = WINDOW_MS, maxRequests: number = 
     if (entry.count > maxRequests) {
       console.log(`Rate limit exceeded: ${ip} on ${req.path} (${entry.count}/${maxRequests})`);
       return res.status(429).json({
-        error: 'Too many requests. Please try again later.',
+        error: '请求过于频繁，请稍后重试',
         retryAfter: Math.ceil((entry.resetTime - now) / 1000)
       });
     }
@@ -41,7 +41,7 @@ export function rateLimiter(windowMs: number = WINDOW_MS, maxRequests: number = 
   };
 }
 
-setInterval(() => {
+const cleanupTimer = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of store.entries()) {
     if (now > entry.resetTime) {
@@ -49,3 +49,9 @@ setInterval(() => {
     }
   }
 }, 5 * 60 * 1000);
+
+cleanupTimer.unref?.();
+
+export function resetRateLimiterForTests() {
+  store.clear();
+}

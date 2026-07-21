@@ -175,7 +175,7 @@ export const avatarApi = {
 
 export const pairingApi = {
   verifyCode: (code: string) =>
-    request<{ success: boolean; avatar_id: number; avatar_name: string; target_name: string; pairing_token: string }>('/pairing/verify', {
+    request<{ success: boolean; avatar_id: number; avatar_name: string; target_name: string; conversation_id: number; pairing_token: string }>('/pairing/verify', {
       method: 'POST',
       body: JSON.stringify({ code }),
     }),
@@ -185,26 +185,30 @@ export const pairingApi = {
 };
 
 export const chatApi = {
-  async sendMessage(avatarId: number, content: string, deviceToken?: string): Promise<{ reply: string }> {
+  async sendMessage(avatarId: number, content: string, conversationId?: number, deviceToken?: string): Promise<{ reply: string; conversation_id: number }> {
     const token = getAuthToken() || await getPairingToken();
     return request('/chat/message', {
       method: 'POST',
-      body: JSON.stringify({ avatar_id: avatarId, content, device_token: deviceToken }),
+      body: JSON.stringify({ avatar_id: avatarId, content, conversation_id: conversationId, device_token: deviceToken }),
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
-  async getHistory(avatarId: number, limit?: number): Promise<{ messages: any[] }> {
+  async getHistory(avatarId: number, limit?: number, conversationId?: number): Promise<{ messages: any[] }> {
     const token = getAuthToken() || await getPairingToken();
-    return request(`/chat/history/${avatarId}${limit ? `?limit=${limit}` : ''}`, {
+    const params = new URLSearchParams();
+    if (limit) params.set('limit', String(limit));
+    if (conversationId) params.set('conversation_id', String(conversationId));
+    const query = params.toString();
+    return request(`/chat/history/${avatarId}${query ? `?${query}` : ''}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 
-  sendCreatorReply: (avatarId: number, content: string) =>
-    request<{ message: string }>('/chat/creator-reply', {
+  sendCreatorReply: (avatarId: number, content: string, conversationId?: number) =>
+    request<{ message: string; conversation_id: number }>('/chat/creator-reply', {
       method: 'POST',
-      body: JSON.stringify({ avatar_id: avatarId, content }),
+      body: JSON.stringify({ avatar_id: avatarId, content, conversation_id: conversationId }),
     }),
 };
 

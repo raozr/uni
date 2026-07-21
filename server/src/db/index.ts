@@ -89,14 +89,31 @@ export async function initializeDatabase() {
   `);
 
   await query(`
+    CREATE TABLE IF NOT EXISTS conversations (
+      id SERIAL PRIMARY KEY,
+      avatar_id INTEGER NOT NULL REFERENCES avatars(id) ON DELETE CASCADE,
+      access_type VARCHAR(20) NOT NULL DEFAULT 'pairing' CHECK (access_type IN ('pairing', 'creator', 'legacy')),
+      device_token TEXT,
+      last_memory_extracted_message_id INTEGER,
+      created_at TIMESTAMP DEFAULT NOW(),
+      updated_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
+
+  await query(`
     CREATE TABLE IF NOT EXISTS chat_messages (
       id SERIAL PRIMARY KEY,
       avatar_id INTEGER NOT NULL REFERENCES avatars(id) ON DELETE CASCADE,
+      conversation_id INTEGER REFERENCES conversations(id) ON DELETE SET NULL,
       role VARCHAR(20) NOT NULL CHECK (role IN ('user', 'ai', 'creator')),
       content TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT NOW()
     );
   `);
+
+  await query(`ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS conversation_id INTEGER REFERENCES conversations(id) ON DELETE SET NULL`);
+  await query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS last_memory_extracted_message_id INTEGER`);
+  await query(`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS device_token TEXT`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS unknown_queries (
@@ -128,6 +145,16 @@ export async function initializeDatabase() {
   await query(`
     CREATE INDEX IF NOT EXISTS idx_chat_messages_avatar_created
       ON chat_messages(avatar_id, created_at DESC);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation_created
+      ON chat_messages(conversation_id, created_at DESC);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_conversations_avatar_created
+      ON conversations(avatar_id, created_at DESC);
   `);
 
   await query(`

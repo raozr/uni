@@ -39,6 +39,7 @@ export default function PairingScreen() {
           avatarId: result.avatar_id,
           avatarName: result.avatar_name,
           targetName: result.target_name,
+          conversationId: result.conversation_id,
         })],
         ['pairing_token', result.pairing_token],
         ['last_identity', 'chat'],
@@ -50,6 +51,7 @@ export default function PairingScreen() {
           avatarId: String(result.avatar_id),
           avatarName: result.avatar_name,
           targetName: result.target_name,
+          conversationId: String(result.conversation_id),
         },
       });
     } catch (err: any) {

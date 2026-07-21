@@ -1,12 +1,13 @@
 import { query } from '../db';
 import { askDeepSeek } from './deepseek';
+import { sendPushNotification } from './push';
 
 interface PresetAnswer {
   keywords: string;
   answer: string;
 }
 
-function matchPresetAnswer(content: string, presets: PresetAnswer[]): string | null {
+export function matchPresetAnswer(content: string, presets: PresetAnswer[]): string | null {
   const lowerContent = content.toLowerCase();
 
   for (const preset of presets) {
@@ -180,12 +181,20 @@ async function buildSystemPrompt(avatar: AvatarForPrompt): Promise<string> {
   return prompt;
 }
 
-async function getRecentHistory(avatarId: number, excludeLatestUserMessage = false): Promise<{ role: string; content: string }[]> {
+async function getRecentHistory(
+  avatarId: number,
+  conversationId?: number | null,
+  excludeLatestUserMessage = false
+): Promise<{ role: string; content: string }[]> {
+  const where = conversationId
+    ? 'avatar_id = $1 AND conversation_id = $2'
+    : 'avatar_id = $1';
+  const params = conversationId ? [avatarId, conversationId] : [avatarId];
   const result = await query(
     `SELECT role, content FROM chat_messages
-     WHERE avatar_id = $1
+     WHERE ${where}
      ORDER BY created_at DESC LIMIT 10`,
-    [avatarId]
+    params
   );
   let rows = result.rows.reverse();
   if (excludeLatestUserMessage) {
@@ -200,7 +209,8 @@ async function getRecentHistory(avatarId: number, excludeLatestUserMessage = fal
 export async function handleChatMessage(
   avatarId: number,
   content: string,
-  deviceToken?: string
+  deviceToken?: string,
+  conversationId?: number | null
 ): Promise<string> {
   const presetResult = await query(
     'SELECT keywords, answer FROM preset_answers WHERE avatar_id = $1',
@@ -224,7 +234,7 @@ export async function handleChatMessage(
   const avatar = avatarResult.rows[0];
 
   const systemPrompt = await buildSystemPrompt(avatar);
-  const history = await getRecentHistory(avatarId, true);
+  const history = await getRecentHistory(avatarId, conversationId, true);
 
   try {
     const reply = await askDeepSeek(systemPrompt, history, content);
@@ -239,6 +249,13 @@ export async function handleChatMessage(
         [avatarId, content]
       );
 
+      await sendPushNotification({
+        to: deviceToken,
+        avatarId,
+        title: 'Uni 有一个待补充问题',
+        body: content.slice(0, 80),
+      }).catch((pushErr) => console.warn('Push notification failed:', pushErr));
+
       return `这个问题我不太确定，我记下来了，稍后再聊好吗？`;
     }
 
@@ -250,7 +267,7 @@ export async function handleChatMessage(
   }
 }
 
-function isUncertainReply(reply: string): boolean {
+export function isUncertainReply(reply: string): boolean {
   const uncertainIndicators = [
     '我不确定', '我不知道', '我不清楚', '无法回答',
     '没有相关信息', '不太确定', '不清楚', '没法回答',

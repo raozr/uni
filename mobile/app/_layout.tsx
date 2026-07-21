@@ -4,7 +4,7 @@ import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setAuthToken, authApi, avatarApi } from '@/lib/api';
+import { setAuthToken, setOnUnauthorized, authApi, avatarApi } from '@/lib/api';
 import { colors, gradients, radii, shadows } from '@/lib/theme';
 
 export default function RootLayout() {
@@ -12,6 +12,10 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
+    setOnUnauthorized(() => {
+      router.replace('/creator-login');
+    });
+
     let cancelled = false;
     (async () => {
       const pairs = await AsyncStorage.multiGet(['auth_token', 'last_identity', 'paired_avatar']);
@@ -34,6 +38,7 @@ export default function RootLayout() {
               avatarId: String(parsed.avatarId),
               avatarName: parsed.avatarName,
               targetName: parsed.targetName,
+              conversationId: parsed.conversationId ? String(parsed.conversationId) : undefined,
             },
           });
           return;
@@ -63,7 +68,10 @@ export default function RootLayout() {
       if (!cancelled) setReady(true);
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      setOnUnauthorized(null);
+    };
   }, []);
 
   if (!ready) {

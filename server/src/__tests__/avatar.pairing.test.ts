@@ -1,10 +1,6 @@
-import crypto from 'crypto';
+import { generatePairingCode } from '../routes/avatar';
 
 describe('avatar pairing code generation', () => {
-  function generatePairingCode(): string {
-    return crypto.randomInt(0, 1000000).toString().padStart(6, '0');
-  }
-
   it('应生成 6 位字符串', () => {
     const code = generatePairingCode();
     expect(code).toMatch(/^\d{6}$/);

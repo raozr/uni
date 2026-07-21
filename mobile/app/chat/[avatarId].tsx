@@ -20,10 +20,11 @@ interface Message {
 export default function ChatScreen() {
   const router = useRouter();
   const headerHeight = useHeaderHeight();
-  const { avatarId, avatarName, targetName, isCreator } = useLocalSearchParams<{
+  const { avatarId, avatarName, targetName, conversationId, isCreator } = useLocalSearchParams<{
     avatarId: string;
     avatarName?: string;
     targetName?: string;
+    conversationId?: string;
     isCreator?: string;
   }>();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -34,6 +35,7 @@ export default function ChatScreen() {
   const nextMsgId = () => `local-${++msgIdCounter.current}`;
 
   const isCreatorMode = isCreator === 'true';
+  const activeConversationId = conversationId ? Number(conversationId) : undefined;
   const aiLabel = avatarName || targetName || 'AI';
   const chatTitle = isCreatorMode
     ? `同「${targetName}」聊天`
@@ -62,7 +64,7 @@ export default function ChatScreen() {
 
   const loadHistory = async () => {
     try {
-      const result = await chatApi.getHistory(Number(avatarId), 50);
+      const result = await chatApi.getHistory(Number(avatarId), 50, activeConversationId);
       const formatted: Message[] = result.messages.map((m: any, i: number) => ({
         id: `msg-${i}`,
         role: (m.role === 'creator' || m.role === 'ai') ? 'ai' : 'user',
@@ -90,9 +92,9 @@ export default function ChatScreen() {
     setLoading(true);
     try {
       if (isCreatorMode) {
-        await chatApi.sendCreatorReply(Number(avatarId), text);
+        await chatApi.sendCreatorReply(Number(avatarId), text, activeConversationId);
       } else {
-        const result = await chatApi.sendMessage(Number(avatarId), text);
+        const result = await chatApi.sendMessage(Number(avatarId), text, activeConversationId);
         const aiMsg: Message = {
           id: nextMsgId(),
           role: 'ai',
