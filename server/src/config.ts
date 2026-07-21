@@ -12,3 +12,7 @@ export const CORS_ORIGINS = (process.env.CORS_ORIGINS || '')
   .filter(Boolean);
 
 export const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
+export const DEEPSEEK_API_URL = process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1';
+
+export const PUSH_ENABLED = process.env.PUSH_ENABLED === 'true';
+export const EXPO_PUSH_ENDPOINT = process.env.EXPO_PUSH_ENDPOINT || 'https://exp.host/--/api/v2/push/send';

@@ -1,5 +1,4 @@
-const PUSH_ENABLED = process.env.PUSH_ENABLED === 'true';
-const PUSH_ENDPOINT = process.env.EXPO_PUSH_ENDPOINT || 'https://exp.host/--/api/v2/push/send';
+import { PUSH_ENABLED, EXPO_PUSH_ENDPOINT } from '../config';
 
 interface PushPayload {
   title: string;
@@ -17,22 +16,32 @@ export async function sendPushNotification(payload: PushPayload): Promise<void> 
     return;
   }
 
-  const response = await fetch(PUSH_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      to: payload.to,
-      title: payload.title,
-      body: payload.body,
-      data: { avatarId: payload.avatarId },
-    }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Push notification failed ${response.status}: ${text}`);
+  try {
+    const response = await fetch(EXPO_PUSH_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: payload.to,
+        title: payload.title,
+        body: payload.body,
+        data: { avatarId: payload.avatarId },
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`Push notification failed ${response.status}: ${text}`);
+    }
+  } catch (err) {
+    console.error('Push notification error:', err instanceof Error ? err.message : err);
+  } finally {
+    clearTimeout(timeout);
   }
 }

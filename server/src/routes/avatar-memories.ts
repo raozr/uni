@@ -95,6 +95,10 @@ router.put('/:avatarId/memories/:memoryId', authenticate, async (req: AuthReques
       return res.status(400).json({ error: 'key must be 100 characters or less' });
     }
 
+    if (content && content.length > 2000) {
+      return res.status(400).json({ error: 'content must be 2000 characters or less' });
+    }
+
     const updates: string[] = [];
     const values: any[] = [];
     let paramCount = 1;

@@ -18,7 +18,7 @@ router.post(
     body('avatar_id').isInt().withMessage('无效的头像配置'),
     body('conversation_id').optional({ nullable: true }).isInt().withMessage('无效的会话'),
     body('content').isLength({ min: 1, max: 2000 }).withMessage('消息内容长度需在 1-2000 之间'),
-    body('device_token').optional().isString(),
+    body('device_token').optional().isString().isLength({ max: 200 }).withMessage('设备令牌过长'),
   ],
   (req: Request, res: Response, next: NextFunction) => {
     req.params.avatar_id = req.body.avatar_id?.toString();

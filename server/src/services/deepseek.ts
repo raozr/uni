@@ -1,5 +1,4 @@
-const DEEPSEEK_API_URL = process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com/v1';
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
+import { DEEPSEEK_API_KEY, DEEPSEEK_API_URL } from '../config';
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
