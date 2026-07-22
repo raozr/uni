@@ -159,10 +159,10 @@ export default function MemoriesScreen() {
         </View>
         <Text style={styles.memoryContent} numberOfLines={3}>{item.content}</Text>
         <View style={styles.memoryActions}>
-          <TouchableOpacity style={styles.memoryActionBtn} onPress={() => openEdit(item)} activeOpacity={0.6}>
+          <TouchableOpacity style={styles.memoryActionBtn} onPress={() => openEdit(item)} activeOpacity={0.6} accessibilityLabel={`编辑记忆「${item.key}」`}>
             <Text style={styles.memoryActionText}>编辑</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.memoryActionBtn} onPress={() => handleDelete(item)} activeOpacity={0.6}>
+          <TouchableOpacity style={styles.memoryActionBtn} onPress={() => handleDelete(item)} activeOpacity={0.6} accessibilityLabel={`删除记忆「${item.key}」`}>
             <Text style={styles.deleteActionText}>删除</Text>
           </TouchableOpacity>
         </View>
@@ -202,6 +202,7 @@ export default function MemoriesScreen() {
             style={styles.addButtonWrapper}
             onPress={() => setShowAddForm(!showAddForm)}
             activeOpacity={0.8}
+            accessibilityLabel={showAddForm ? '取消添加记忆' : '添加记忆'}
           >
             <LinearGradient
               colors={gradients.primary as unknown as [string, string]}
@@ -240,6 +241,7 @@ export default function MemoriesScreen() {
                   onPress={handleAdd}
                   disabled={saving}
                   activeOpacity={0.8}
+                  accessibilityLabel="保存记忆"
                 >
                   <LinearGradient
                     colors={gradients.primary as unknown as [string, string]}
@@ -300,11 +302,11 @@ export default function MemoriesScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
             <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setEditModal({ visible: false, memory: null })}>
+              <TouchableOpacity onPress={() => setEditModal({ visible: false, memory: null })} accessibilityLabel="取消编辑">
                 <Text style={styles.modalCancelText}>取消</Text>
               </TouchableOpacity>
               <Text style={styles.modalTitle}>编辑记忆</Text>
-              <TouchableOpacity onPress={handleEdit} disabled={saving}>
+              <TouchableOpacity onPress={handleEdit} disabled={saving} accessibilityLabel="保存记忆">
                 {saving ? (
                   <ActivityIndicator size="small" color={colors.primary} />
                 ) : (

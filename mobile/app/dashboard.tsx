@@ -90,6 +90,7 @@ export default function CreatorDashboardScreen() {
               style={styles.headerLogoutBtn}
               onPress={handleLogout}
               activeOpacity={0.6}
+              accessibilityLabel="退出登录"
             >
               <Text style={styles.headerLogoutText}>退出</Text>
             </TouchableOpacity>
@@ -109,6 +110,7 @@ export default function CreatorDashboardScreen() {
                   onPress={() => router.push('/avatar-setup')}
                   activeOpacity={0.8}
                   style={styles.emptyBtn}
+                  accessibilityLabel="创建第一个分身"
                 >
                   <Text style={styles.emptyBtnText}>创建第一个分身</Text>
                 </TouchableOpacity>
@@ -150,6 +152,7 @@ export default function CreatorDashboardScreen() {
                       },
                     })}
                     activeOpacity={0.6}
+                    accessibilityLabel={`查看与${avatar.target_name}的聊天`}
                   >
                     <Text style={styles.actionBtnText}>查看聊天</Text>
                   </TouchableOpacity>
@@ -161,6 +164,7 @@ export default function CreatorDashboardScreen() {
                       params: { avatarId: String(avatar.id) },
                     })}
                     activeOpacity={0.6}
+                    accessibilityLabel={`${avatar.name}的记忆管理`}
                   >
                     <Text style={styles.actionBtnText}>记忆管理</Text>
                   </TouchableOpacity>
@@ -172,6 +176,7 @@ export default function CreatorDashboardScreen() {
                       params: { avatarId: String(avatar.id) },
                     })}
                     activeOpacity={0.6}
+                    accessibilityLabel={`${avatar.name}的预设问答`}
                   >
                     <Text style={styles.actionBtnText}>预设问答</Text>
                   </TouchableOpacity>
@@ -183,6 +188,7 @@ export default function CreatorDashboardScreen() {
                       params: { avatarId: String(avatar.id) },
                     })}
                     activeOpacity={0.6}
+                    accessibilityLabel={`${avatar.name}的未知问题`}
                   >
                     <Text style={styles.actionBtnText}>未知问题</Text>
                   </TouchableOpacity>
@@ -194,6 +200,7 @@ export default function CreatorDashboardScreen() {
                       params: { avatarId: String(avatar.id) },
                     })}
                     activeOpacity={0.6}
+                    accessibilityLabel={`编辑${avatar.name}`}
                   >
                     <Text style={styles.actionBtnText}>编辑</Text>
                   </TouchableOpacity>
@@ -202,6 +209,7 @@ export default function CreatorDashboardScreen() {
                     style={styles.actionBtn}
                     onPress={() => handleShareCode(avatar)}
                     activeOpacity={0.6}
+                    accessibilityLabel={`分享${avatar.name}的配对码`}
                   >
                     <Text style={styles.actionBtnText}>分享码</Text>
                   </TouchableOpacity>
@@ -214,6 +222,7 @@ export default function CreatorDashboardScreen() {
             onPress={() => router.push('/avatar-setup')}
             activeOpacity={0.8}
             style={styles.dashCreateBtn}
+            accessibilityLabel="新建分身"
           >
             <Text style={styles.createBtnIcon}>+</Text>
             <Text style={styles.createBtnText}>新建分身</Text>
@@ -223,6 +232,7 @@ export default function CreatorDashboardScreen() {
             style={styles.dashLogoutBtn}
             onPress={handleLogout}
             activeOpacity={0.7}
+            accessibilityLabel="退出登录"
           >
             <Text style={styles.logoutBtnText}>退出登录</Text>
           </TouchableOpacity>

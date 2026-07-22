@@ -72,7 +72,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.cardsContainer}>
-        <TouchableOpacity activeOpacity={0.85} disabled={navigating} onPress={() => {
+        <TouchableOpacity activeOpacity={0.85} disabled={navigating} accessibilityLabel="管理分身" onPress={() => {
           if (user) {
             handleNavigate('/dashboard');
           } else {
@@ -103,7 +103,7 @@ export default function HomeScreen() {
           </LinearGradient>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.85} disabled={navigating} onPress={() => {
+        <TouchableOpacity activeOpacity={0.85} disabled={navigating} accessibilityLabel="开始聊天" onPress={() => {
           if (pairedAvatar) {
             handleNavigate({
               pathname: '/chat/[avatarId]',

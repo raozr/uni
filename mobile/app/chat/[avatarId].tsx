@@ -248,6 +248,7 @@ export default function ChatScreen() {
               onPress={sendMessage}
               disabled={!inputText.trim() || loading}
               activeOpacity={0.85}
+              accessibilityLabel="发送消息"
             >
               <LinearGradient
                 colors={gradients.primary as unknown as [string, string]}
@@ -274,6 +275,7 @@ function ExitButton({ onPress }: { onPress: () => void }) {
     <TouchableOpacity
       onPress={onPress}
       style={styles.exitButtonCircle}
+      accessibilityLabel="退出聊天"
     >
       <Text style={styles.exitIcon}>↪</Text>
     </TouchableOpacity>

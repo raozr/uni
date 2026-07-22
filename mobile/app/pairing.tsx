@@ -97,6 +97,7 @@ export default function PairingScreen() {
                   style={styles.keyButton}
                   onPress={handleDelete}
                   activeOpacity={0.5}
+                  accessibilityLabel="删除"
                 >
                   <Text style={styles.keyDelText}>⌫</Text>
                 </TouchableOpacity>
@@ -108,6 +109,7 @@ export default function PairingScreen() {
                 style={styles.keyButton}
                 onPress={() => handleNumberPress(key)}
                 activeOpacity={0.5}
+                accessibilityLabel={`数字${key}`}
               >
                 <Text style={styles.keyText}>{key}</Text>
               </TouchableOpacity>
@@ -121,6 +123,7 @@ export default function PairingScreen() {
             onPress={handleVerify}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityLabel="开始聊天"
           >
             <LinearGradient
               colors={gradients.primary as unknown as [string, string]}

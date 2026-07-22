@@ -121,6 +121,7 @@ export default function UnknownQueriesScreen() {
                   setReplyText('');
                 }}
                 activeOpacity={0.6}
+                accessibilityLabel="取消回复"
               >
                 <Text style={styles.cancelText}>取消</Text>
               </TouchableOpacity>
@@ -129,6 +130,7 @@ export default function UnknownQueriesScreen() {
                 onPress={() => handleRespond(item.id)}
                 disabled={responding}
                 activeOpacity={0.8}
+                accessibilityLabel="回复并保存"
               >
                 <LinearGradient
                   colors={gradients.primary as unknown as [string, string]}
@@ -147,6 +149,7 @@ export default function UnknownQueriesScreen() {
               style={styles.respondButton}
               onPress={() => handleStartResponding(item.id)}
               activeOpacity={0.6}
+              accessibilityLabel={`回复问题「${item.question}」`}
             >
               <Text style={styles.respondText}>回复</Text>
             </TouchableOpacity>
@@ -180,6 +183,7 @@ export default function UnknownQueriesScreen() {
             style={styles.filterBtn}
             onPress={() => setShowAnswered(!showAnswered)}
             activeOpacity={0.6}
+            accessibilityLabel={showAnswered ? '查看未回复的问题' : '查看已回复的问题'}
           >
             <Text style={styles.filterText}>
               {showAnswered ? '未回复' : '已回复'}

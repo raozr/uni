@@ -111,6 +111,7 @@ export default function CreatorLoginScreen() {
               onPress={handleSubmit}
               disabled={loading}
               activeOpacity={0.8}
+              accessibilityLabel={isRegister ? '注册' : '登录'}
             >
               <LinearGradient
                 colors={gradients.primary as unknown as [string, string]}
@@ -130,6 +131,7 @@ export default function CreatorLoginScreen() {
               style={styles.switchButton}
               onPress={() => setIsRegister(!isRegister)}
               activeOpacity={0.7}
+              accessibilityLabel={isRegister ? '已有账号？去登录' : '没有账号？去注册'}
             >
               <Text style={styles.switchText}>
                 {isRegister ? '已有账号？去登录' : '没有账号？去注册'}

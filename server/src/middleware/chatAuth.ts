@@ -3,6 +3,12 @@ import jwt from 'jsonwebtoken';
 import { query } from '../db';
 import { JWT_SECRET } from '../config';
 import { parsePositiveInt } from '../utils/params';
+import { isPairingPayload, isCreatorPayload } from './auth';
+
+function getAvatarIdFromRequest(req: Request): number | null {
+  const raw = req.params.avatar_id ?? req.body.avatar_id;
+  return parsePositiveInt(raw?.toString());
+}
 
 export async function chatAuthenticate(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -13,10 +19,10 @@ export async function chatAuthenticate(req: Request, res: Response, next: NextFu
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown;
 
-    if (decoded.type === 'pairing') {
-      const avatarId = parsePositiveInt((req.params.avatar_id || req.body.avatar_id)?.toString());
+    if (isPairingPayload(decoded)) {
+      const avatarId = getAvatarIdFromRequest(req);
       if (!avatarId) {
         return res.status(400).json({ error: '无效的头像配置' });
       }
@@ -28,8 +34,8 @@ export async function chatAuthenticate(req: Request, res: Response, next: NextFu
       return next();
     }
 
-    if (decoded.id) {
-      const avatarId = parsePositiveInt((req.params.avatar_id || req.body.avatar_id)?.toString());
+    if (isCreatorPayload(decoded)) {
+      const avatarId = getAvatarIdFromRequest(req);
       if (!avatarId) {
         return res.status(400).json({ error: '无效的头像配置' });
       }

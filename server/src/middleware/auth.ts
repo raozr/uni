@@ -4,6 +4,29 @@ import { JWT_SECRET } from '../config';
 
 export interface AuthRequest extends Request {
   user?: { id: number; email: string };
+  isCreator?: boolean;
+  userId?: number;
+  avatarId?: number;
+}
+
+export interface PairingJwtPayload {
+  type: 'pairing';
+  avatarId: number;
+}
+
+export interface CreatorJwtPayload {
+  id: number;
+  email: string;
+}
+
+export type JwtPayload = PairingJwtPayload | CreatorJwtPayload;
+
+export function isPairingPayload(decoded: unknown): decoded is PairingJwtPayload {
+  return typeof decoded === 'object' && decoded !== null && 'type' in decoded && (decoded as any).type === 'pairing';
+}
+
+export function isCreatorPayload(decoded: unknown): decoded is CreatorJwtPayload {
+  return typeof decoded === 'object' && decoded !== null && 'id' in decoded;
 }
 
 export function authenticate(req: AuthRequest, res: Response, next: NextFunction) {

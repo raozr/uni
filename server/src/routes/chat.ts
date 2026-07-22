@@ -20,10 +20,6 @@ router.post(
     body('content').isLength({ min: 1, max: 2000 }).withMessage('消息内容长度需在 1-2000 之间'),
     body('device_token').optional().isString().isLength({ max: 200 }).withMessage('设备令牌过长'),
   ],
-  (req: Request, res: Response, next: NextFunction) => {
-    req.params.avatar_id = req.body.avatar_id?.toString();
-    next();
-  },
   chatAuthenticate,
   async (req: AuthRequest, res: Response) => {
     const errors = validationResult(req);

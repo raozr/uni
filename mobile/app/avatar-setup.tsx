@@ -88,6 +88,7 @@ function SegmentedControl<T extends string>({ options, selected, onSelect }: {
           style={[segS.btn, selected === opt.value && segS.btnActive]}
           onPress={() => onSelect(opt.value)}
           activeOpacity={0.7}
+          accessibilityLabel={opt.label}
         >
           <Text style={[segS.label, selected === opt.value && segS.labelActive]}>
             {opt.label}
@@ -108,6 +109,7 @@ export default function AvatarSetupScreen() {
   const [persona, setPersona] = useState('');
   const [aiTone, setAiTone] = useState('语气亲切、温柔，像家人一样聊天');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(isEdit);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [age, setAge] = useState(30);
@@ -161,6 +163,8 @@ export default function AvatarSetupScreen() {
       }
     } catch (err: any) {
       Alert.alert('错误', err.message || '获取分身信息失败');
+    } finally {
+      if (!cancelledRef.current) setInitialLoading(false);
     }
   };
 
@@ -286,6 +290,7 @@ export default function AvatarSetupScreen() {
           style={styles.advancedToggle}
           onPress={() => setShowAdvanced(v => !v)}
           activeOpacity={0.7}
+          accessibilityLabel={showAdvanced ? '收起高级性格设置' : '展开高级性格设置'}
         >
           <Text style={styles.advancedToggleText}>高级性格设置</Text>
           <Text style={styles.advancedToggleArrow}>{showAdvanced ? '▲' : '▼'}</Text>
@@ -315,6 +320,7 @@ export default function AvatarSetupScreen() {
                   style={[styles.chip, relationship === opt && styles.chipActive]}
                   onPress={() => setRelationship(relationship === opt ? '' : opt)}
                   activeOpacity={0.7}
+                  accessibilityLabel={`关系：${opt}`}
                 >
                   <Text style={[styles.chipText, relationship === opt && styles.chipTextActive]}>
                     {opt}
@@ -352,7 +358,7 @@ export default function AvatarSetupScreen() {
                 onSubmitEditing={addInterest}
                 returnKeyType="done"
               />
-              <TouchableOpacity style={styles.addTagBtn} onPress={addInterest} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.addTagBtn} onPress={addInterest} activeOpacity={0.7} accessibilityLabel="添加兴趣">
                 <LinearGradient
                   colors={[colors.primary, '#477e80']}
                   start={{ x: 0, y: 0 }}
@@ -368,7 +374,7 @@ export default function AvatarSetupScreen() {
                 {interests.map((tag, idx) => (
                   <View key={`${tag}-${idx}`} style={styles.tag}>
                     <Text style={styles.tagText}>{tag}</Text>
-                    <TouchableOpacity onPress={() => removeInterest(idx)} style={styles.tagRemove}>
+                    <TouchableOpacity onPress={() => removeInterest(idx)} style={styles.tagRemove} accessibilityLabel={`删除兴趣${tag}`}>
                       <Text style={styles.tagRemoveText}>×</Text>
                     </TouchableOpacity>
                   </View>
@@ -423,11 +429,19 @@ export default function AvatarSetupScreen() {
           </View>
         )}
 
+        {initialLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>加载中...</Text>
+          </View>
+        )}
+
         <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+          style={[styles.button, (loading || initialLoading) && styles.buttonDisabled]}
           onPress={handleSubmit}
-          disabled={loading}
+          disabled={loading || initialLoading}
           activeOpacity={0.8}
+          accessibilityLabel={isEdit ? '保存修改' : '生成配对码'}
         >
           <LinearGradient
             colors={[colors.primary, '#477e80']}
@@ -516,6 +530,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+  },
+  loadingOverlay: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: colors.muted,
   },
   title: {
     fontSize: 30,

@@ -96,6 +96,7 @@ export default function PresetAnswersScreen() {
             style={styles.deleteBtn}
             onPress={() => handleDelete(item.id)}
             activeOpacity={0.6}
+            accessibilityLabel={`删除预设问答「${item.question}」`}
           >
             <Text style={styles.deleteText}>×</Text>
           </TouchableOpacity>
@@ -134,6 +135,7 @@ export default function PresetAnswersScreen() {
           style={styles.addButtonWrapper}
           onPress={() => setShowForm(!showForm)}
           activeOpacity={0.8}
+          accessibilityLabel={showForm ? '取消添加预设问答' : '添加预设问答'}
         >
           <LinearGradient
             colors={gradients.primary as unknown as [string, string]}
@@ -179,6 +181,7 @@ export default function PresetAnswersScreen() {
                 onPress={handleAdd}
                 disabled={saving}
                 activeOpacity={0.8}
+                accessibilityLabel="保存预设问答"
               >
                 <LinearGradient
                   colors={gradients.primary as unknown as [string, string]}
