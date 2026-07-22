@@ -11,6 +11,7 @@ export default function HomeScreen() {
   const [user, setUser] = useState<any>(null);
   const [pairedAvatar, setPairedAvatar] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [navigating, setNavigating] = useState(false);
   const reqIdRef = useRef(0);
 
   const loadState = useCallback(async () => {
@@ -54,8 +55,6 @@ export default function HomeScreen() {
       </View>
     );
   }
-
-  const [navigating, setNavigating] = useState(false);
 
   const handleNavigate = (path: string | { pathname: string; params?: Record<string, string | undefined> }) => {
     if (navigating) return;
