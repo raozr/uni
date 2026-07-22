@@ -40,12 +40,13 @@ export default function CodeDisplayScreen() {
           style={styles.shareButton}
           onPress={handleShare}
           activeOpacity={0.7}
+          accessibilityLabel="分享配对码"
         >
           <Text style={styles.shareButtonText}>📤 分享配对码</Text>
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity activeOpacity={0.85} onPress={() => router.replace('/dashboard')}>
+      <TouchableOpacity activeOpacity={0.85} onPress={() => router.replace('/dashboard')} accessibilityLabel="进入管理页面">
         <LinearGradient
           colors={gradients.primary as unknown as [string, string]}
           start={{ x: 0, y: 0 }}
